@@ -286,22 +286,23 @@ export default function App() {
         </label>
       </div>
 
-      <div className="canvas-actions" aria-label="画布操作">
-        <div className="canvas-function-area" role="group" aria-label="功能区">
-          <span className="canvas-function-label">功能区</span>
-          <button type="button" title="全部展开" aria-label="全部展开" onClick={expandAll}>
-            <Expand size={16} />
-          </button>
-          <button type="button" title="全部折叠" aria-label="全部折叠" onClick={collapseAll}>
-            <Shrink size={16} />
-          </button>
-          <button type="button" title="放大" aria-label="放大" onClick={() => zoomIn({ duration: 200 })}>
-            <ZoomIn size={16} />
-          </button>
-          <button type="button" title="缩小" aria-label="缩小" onClick={() => zoomOut({ duration: 200 })}>
-            <ZoomOut size={16} />
-          </button>
-        </div>
+      <div className="canvas-function-area" role="group" aria-label="功能区">
+        <span className="canvas-function-label">功能区</span>
+        <button type="button" title="全部展开" aria-label="全部展开" onClick={expandAll}>
+          <Expand size={16} />
+        </button>
+        <button type="button" title="全部折叠" aria-label="全部折叠" onClick={collapseAll}>
+          <Shrink size={16} />
+        </button>
+        <button type="button" title="放大" aria-label="放大" onClick={() => zoomIn({ duration: 200 })}>
+          <ZoomIn size={16} />
+        </button>
+        <button type="button" title="缩小" aria-label="缩小" onClick={() => zoomOut({ duration: 200 })}>
+          <ZoomOut size={16} />
+        </button>
+      </div>
+
+      <div className="canvas-actions" aria-label="其他画布操作">
         <button
           className="canvas-utility-button"
           type="button"
