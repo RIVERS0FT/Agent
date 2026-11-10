@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Expand,
   Github,
@@ -23,7 +23,8 @@ import {
   countDescendants,
   filterKnowledgeTree,
   findKnowledgeColor,
-  findKnowledgeItem
+  findKnowledgeItem,
+  ROOT_ID
 } from "./lib/graph";
 
 const nodeTypes = { knowledge: KnowledgeNode };
@@ -33,25 +34,77 @@ export default function App() {
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(["fundamentals"]));
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+
+  const graphRef = useRef<{ nodes: Array<{ id: string; position: { x: number; y: number } }> }>({
+    nodes: []
+  });
+  const expandedRef = useRef(expanded);
+  const filteredTreeRef = useRef(knowledgeTree);
+  const selectedIdRef = useRef(selectedId);
+  const queryRef = useRef(query);
+  const canvasOffsetRef = useRef(canvasOffset);
 
   const filteredTree = useMemo(
     () => filterKnowledgeTree(knowledgeTree, query),
     [query]
   );
 
-  const toggleBranch = useCallback((id: string) => {
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  // Recalculate the layout while keeping the chosen node at its current canvas position.
+  const applyExpanded = useCallback((nextExpanded: Set<string>, anchorId: string) => {
+    const previousAnchor = graphRef.current.nodes.find((node) => node.id === anchorId);
+    const nextGraph = buildGraph(
+      filteredTreeRef.current,
+      nextExpanded,
+      selectedIdRef.current,
+      () => {},
+      queryRef.current
+    );
+    const nextAnchor = nextGraph.nodes.find((node) => node.id === anchorId);
+
+    if (previousAnchor && nextAnchor) {
+      const nextOffset = {
+        x: previousAnchor.position.x - nextAnchor.position.x,
+        y: previousAnchor.position.y - nextAnchor.position.y
+      };
+      canvasOffsetRef.current = nextOffset;
+      setCanvasOffset(nextOffset);
+    }
+
+    expandedRef.current = nextExpanded;
+    setExpanded(nextExpanded);
   }, []);
 
-  const graph = useMemo(
+  const toggleBranch = useCallback((id: string) => {
+    const nextExpanded = new Set(expandedRef.current);
+    if (nextExpanded.has(id)) nextExpanded.delete(id);
+    else nextExpanded.add(id);
+    applyExpanded(nextExpanded, id);
+  }, [applyExpanded]);
+
+  const baseGraph = useMemo(
     () => buildGraph(filteredTree, expanded, selectedId, toggleBranch, query),
     [filteredTree, expanded, selectedId, toggleBranch, query]
   );
+
+  const graph = useMemo(() => ({
+    nodes: baseGraph.nodes.map((node) => ({
+      ...node,
+      position: {
+        x: node.position.x + canvasOffset.x,
+        y: node.position.y + canvasOffset.y
+      }
+    })),
+    edges: baseGraph.edges
+  }), [baseGraph, canvasOffset]);
+
+  // Keep refs synchronized so event handlers can calculate from the latest rendered graph.
+  graphRef.current = graph;
+  expandedRef.current = expanded;
+  filteredTreeRef.current = filteredTree;
+  selectedIdRef.current = selectedId;
+  queryRef.current = query;
+  canvasOffsetRef.current = canvasOffset;
 
   const matchCount = countDescendants(filteredTree.children ?? []);
   const selectedItem = findKnowledgeItem(knowledgeTree, selectedId);
@@ -72,10 +125,11 @@ export default function App() {
   };
 
   const expandAll = () => {
-    setExpanded(new Set((knowledgeTree.children ?? []).map((item) => item.id)));
+    const nextExpanded = new Set((knowledgeTree.children ?? []).map((item) => item.id));
+    applyExpanded(nextExpanded, ROOT_ID);
   };
 
-  const collapseAll = () => setExpanded(new Set());
+  const collapseAll = () => applyExpanded(new Set(), ROOT_ID);
 
   return (
     <main className="map-frame" aria-label="Agent 开发知识图谱">
