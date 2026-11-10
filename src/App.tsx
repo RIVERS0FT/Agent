@@ -25,7 +25,6 @@ import {
   findKnowledgeColor,
   findKnowledgeItem
 } from "./lib/graph";
-import type { KnowledgeNodeData } from "./types";
 
 const nodeTypes = { knowledge: KnowledgeNode };
 
