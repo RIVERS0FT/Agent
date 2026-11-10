@@ -192,6 +192,22 @@ export function findKnowledgeItem(
   return null;
 }
 
+export function findKnowledgePath(
+  item: KnowledgeItem,
+  id: string | null,
+  ancestors: KnowledgeItem[] = []
+): KnowledgeItem[] {
+  if (!id) return [];
+  const path = [...ancestors, item];
+  if (item.id === id) return path;
+
+  for (const child of item.children ?? []) {
+    const found = findKnowledgePath(child, id, path);
+    if (found.length > 0) return found;
+  }
+  return [];
+}
+
 export function findKnowledgeColor(
   item: KnowledgeItem,
   id: string,
