@@ -203,8 +203,58 @@ export const knowledgeTree: KnowledgeItem = node(
             "根据任务特征选择逐步推理、计划执行或工具辅助推理。",
             "不同任务不应强行使用同一种推理模式。策略层决定何时继续思考、何时调用工具、何时停止，以及何时需要补充信息。",
             [
-              { id: "react", title: "ReAct", summary: "交替执行推理、工具行动与观察。", description: "在模型决策和工具反馈之间循环，将每次行动的观察结果加入下一轮上下文，并设置最大步数与停止条件。", tags: ["Reasoning", "Act", "Observe"] },
-              { id: "plan-and-execute", title: "Plan-and-Execute", summary: "先规划，再按步骤执行和修订。", description: "由 Planner 生成计划，Executor 执行子任务，Verifier 检查产物；当依赖或环境发生变化时触发局部重规划。", tags: ["Planner", "Executor"] },
+              {
+                id: "react",
+                title: "ReAct · Reason + Act",
+                summary: "交替生成推理、工具行动和环境观察，让行动反馈持续修正下一步决策。",
+                description: "ReAct（Reasoning and Acting）将语言模型的推理轨迹与面向环境的动作交错组织。模型先根据当前目标和观察形成下一步判断，再发出 Search、Lookup、Click 等动作；环境返回 Observation 后，模型把新证据纳入上下文，继续推理、调整计划或结束任务。它不是先写完一份固定计划再执行，而是让计划在交互过程中动态形成和更新。",
+                points: [
+                  "典型循环：Thought / Reasoning → Action → Observation → 下一轮 Reasoning；实际实现可以稀疏生成显式推理，不要求每一步都输出完整思维文本。",
+                  "Reasoning 用于分解目标、跟踪进度、解释观察和处理异常；Action 用于查询外部知识库或改变环境状态。",
+                  "适合信息需要边执行边获取、环境会变化、需要根据工具反馈修正策略的任务，例如多跳问答、网页操作和交互式环境。",
+                  "优势是反馈闭环和可诊断的行动轨迹；成本是多轮模型与工具调用，且需要限制循环、步数、权限和停止条件。",
+                  "与 Plan-and-Solve 的区别：ReAct 强调推理与外部行动/观察交替；Plan-and-Solve 强调先拆解问题，再按计划完成子问题。"
+                ],
+                tags: ["Reasoning", "Act", "Observe", "Tool Feedback", "Closed Loop"],
+                resources: [
+                  { label: "ReAct · ICLR 2023 Paper", url: "https://arxiv.org/abs/2210.03629" },
+                  { label: "Google Research · ReAct Overview", url: "https://research.google/blog/react-synergizing-reasoning-and-acting-in-language-models/" },
+                  { label: "ReAct Project & Code", url: "https://react-lm.github.io/" }
+                ]
+              },
+              {
+                id: "plan-and-solve-prompting",
+                title: "Plan-and-Solve Prompting · PS / PS+",
+                summary: "先生成子任务计划，再按计划逐项求解；PS+ 增加变量提取和中间计算指引。",
+                description: "Plan-and-Solve（PS）是 Wang 等人在 ACL 2023 提出的零样本 Chain-of-Thought 提示方法，目标是缓解 Zero-shot-CoT 容易遗漏中间步骤的问题。它分为两个阶段：Plan 阶段先理解问题并把整体任务拆成更小的子任务；Solve 阶段再依照计划逐项求解并给出答案。PS+ 在此基础上加入更具体的求解指引，例如提取相关变量及其数值、计算中间结果，并注意计算与常识一致性。它主要是一种 Prompting / Reasoning Pattern，不要求独立 Planner 服务、任务队列或外部 Executor。",
+                points: [
+                  "Plan：理解题意、识别目标和约束，将复杂问题分解为有顺序的子问题；计划应覆盖求解所需的关键步骤。",
+                  "Solve：严格按照计划处理子问题，保留必要的中间结果，再汇总为最终答案。",
+                  "PS+：增加变量与数值抽取、中间计算和常识检查等更明确的指令，重点改善计算错误和推理步骤质量。",
+                  "主要价值：减少遗漏步骤，适合数学、常识和符号推理等多步问题；可作为零样本提示策略，不需要人工示例。",
+                  "局限：计划和求解仍主要由同一个模型按提示完成；如果需要真实环境反馈、调用工具或执行后验证，应组合 ReAct、Tool Use 或 Plan-and-Execute。",
+                  "与 Plan-and-Execute 的区别：PS / PS+ 是提示层面的两阶段问题求解方法；Plan-and-Execute 是系统/工作流层的 Planner 与 Executor 分工，可跨工具执行并在环境变化时重规划。"
+                ],
+                tags: ["Plan-and-Solve", "PS", "PS+", "Zero-shot CoT", "Prompting", "Task Decomposition"],
+                resources: [
+                  { label: "ACL 2023 · Plan-and-Solve Prompting Paper", url: "https://aclanthology.org/2023.acl-long.147/" },
+                  { label: "arXiv · Plan-and-Solve Prompting", url: "https://arxiv.org/abs/2305.04091" },
+                  { label: "Plan-and-Solve Prompting · Official Code", url: "https://github.com/AGI-Edgerunners/Plan-and-Solve-Prompting" }
+                ]
+              },
+              {
+                id: "plan-and-execute",
+                title: "Plan-and-Execute",
+                summary: "先制定显式计划，再由执行器逐步执行、验证并在必要时重规划。",
+                description: "Plan-and-Execute 是系统编排模式：Planner 产出结构化步骤，Executor 调用工具或子 Agent 执行，Verifier 检查实际结果；执行状态、依赖和环境反馈会决定是否继续、调整步骤或局部重规划。与 Plan-and-Solve Prompting 不同，它强调规划器与执行器的职责分离，以及计划在真实执行过程中的状态管理。",
+                points: [
+                  "Planner 输出可追踪的任务列表、依赖、预期产物和完成条件。",
+                  "Executor 按步骤调用工具、API 或子 Agent，并将执行结果回写工作流状态。",
+                  "Verifier 根据外部状态判断步骤是否真正完成；失败或环境变化时触发重试、补偿或重规划。",
+                  "适合长任务、工具密集型任务和需要跨步骤管理执行状态的场景；代价是编排复杂度和状态管理成本更高。"
+                ],
+                tags: ["Planner", "Executor", "Verifier", "Workflow", "Replanning"]
+              },
               { id: "tool-assisted-reasoning", title: "Tool-assisted Reasoning", summary: "借助搜索、计算和代码执行解决问题。", description: "将事实查询、精确计算和可验证操作交给外部工具，模型负责选择工具、解释结果和整合证据。", tags: ["Search", "Code", "Calculator"] }
             ],
             ["ReAct", "Planning", "Tool Use"]
