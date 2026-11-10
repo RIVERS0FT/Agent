@@ -1,17 +1,30 @@
-import { ArrowUpRight, BookOpen, Layers3, X } from "lucide-react";
+import { ArrowUpRight, BookOpen, ChevronRight, Layers3, X } from "lucide-react";
 import type { KnowledgeItem, KnowledgeNodeData } from "../types";
 
 type DetailPanelProps = {
   item: KnowledgeItem;
+  path: KnowledgeItem[];
   color: string;
   kind: KnowledgeNodeData["kind"];
   onClose: () => void;
 };
 
-export function DetailPanel({ item, color, kind, onClose }: DetailPanelProps) {
+export function DetailPanel({ item, path, color, kind, onClose }: DetailPanelProps) {
   return (
     <aside className="detail-panel" aria-label="知识节点详情">
       <div className="detail-panel-top">
+        <nav className="detail-breadcrumb" aria-label="树状图路径">
+          <ol>
+            {path.map((ancestor, index) => (
+              <li key={ancestor.id}>
+                {index > 0 && <ChevronRight className="detail-breadcrumb-separator" size={13} />}
+                <span aria-current={index === path.length - 1 ? "page" : undefined}>
+                  {ancestor.title}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </nav>
         <button type="button" className="icon-button" onClick={onClose} aria-label="关闭详情">
           <X size={18} />
         </button>
