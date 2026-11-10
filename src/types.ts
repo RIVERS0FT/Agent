@@ -12,6 +12,7 @@ export type KnowledgeItem = {
   tags?: string[];
   color?: string;
   resources?: KnowledgeResource[];
+  relatedIds?: string[];
   children?: KnowledgeItem[];
 };
 
