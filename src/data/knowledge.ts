@@ -232,7 +232,7 @@ export const knowledgeTree: KnowledgeItem = node(
                 id: "codex-memory-extraction",
                 title: "Codex · Rollout Extraction",
                 summary: "开启 Local Memories 后，在后台扫描符合条件的历史线程并逐线程提取经验。",
-                description: "Codex Local Memories 默认关闭；启用后，Codex 在后台异步筛选历史 rollout，而不是在每轮对话结束时立即写入。候选线程需满足来源、年龄和空闲时间条件，并通过批次、领取状态及速率限制检查。模型读取过滤后的对话并生成结构化记忆；没有长期价值时允许返回空结果，生成字段会进行 Secret Redaction。外部工具或网页上下文是否允许参与提取，还可由配置控制。"
+                description: "Codex Local Memories 默认关闭；启用后，Codex 在后台异步筛选历史 rollout，而不是在每轮对话结束时立即写入。候选线程需满足来源、年龄和空闲时间条件，并通过批次、领取状态及速率限制检查。模型读取过滤后的对话并生成结构化记忆；没有长期价值时允许返回空结果，生成字段会进行 Secret Redaction。外部工具或网页上下文是否允许参与提取，还可由配置控制。",
                 points: [
                   "Phase 1 先从 State DB 领取候选线程，再按并发上限并行提取；领取租约用于避免重复处理，失败任务使用退避重试。",
                   "v1 输出 raw_memory、rollout_summary 和可选 rollout_slug；v2 改为更重视任务边界、用户原话、操作证据和结果状态的 task-first rollout_summary。",
@@ -279,11 +279,11 @@ export const knowledgeTree: KnowledgeItem = node(
                 id: "codex-memory-storage",
                 title: "Codex · Local Memory Store",
                 summary: "使用本地 State DB 和版本化文件工作区保存记忆。",
-                description: "Codex 将记忆保存在 CODEX_HOME 下。State DB 暂存逐线程提取结果和使用统计；Phase 2 将选中的 rollout 摘要同步到文件系统。v1 与 v2 的目录和产物不同：常见路径为 ~/.codex/memories/ 或 ~/.codex/memories_v2/，新建 CLI home 默认倾向 v2，已有旧目录时可能继续使用 v1。",
+                description: "Codex 将记忆保存在 CODEX_HOME 下。State DB 暂存逐线程提取结果和使用统计；Phase 2 将选中的 rollout 摘要同步到文件系统。v1 与 v2 的目录和产物不同：启用记忆时，新建 CLI home 默认使用 memories_v2；若已有 memories/ 目录，通常继续使用 v1，且 memories.version 与 memories.dual_write 可显式控制版本选择和迁移。",
                 points: [
                   "v1 工作区包含 raw_memories.md、rollout_summaries/ 以及由整合 Agent 维护的 MEMORY.md、memory_summary.md 和可选 skills/。",
                   "v2 更强调 memory_summary.md 作为启动摘要、rollout_summaries/ 作为证据和任务细节，以及 extensions/ad_hoc/notes/ 作为用户明确提出的记忆修改入口。",
-                  "配置项 memories.version 和 memories.dual_write 控制版本选择与双写迁移；桌面端迁移期间可能同时读取旧目录并写入两个目录。",
+                  "配置项 memories.version 和 memories.dual_write 控制版本选择与双写迁移；桌面端迁移期间可能同时读取旧目录并写入两个目录。memories.dual_write=false 时，新 profile 也可能保留 v1 默认行为。",
                   "这些文件是生成状态，适合检查和排障，不建议把手工编辑生成文件作为主要记忆控制方式。"
                 ],
                 tags: ["Codex", "State DB", "Filesystem", "v1 / v2"],
@@ -373,7 +373,7 @@ export const knowledgeTree: KnowledgeItem = node(
                 id: "codex-memory-consolidation",
                 title: "Codex · Global Consolidation",
                 summary: "Phase 2 使用全局锁和独立 Agent 整理跨线程记忆。",
-                description: "Codex 在逐线程 Phase 1 之后运行 Phase 2。它先获取全局工作区锁，再按使用情况和保留条件选择 Stage 1 记录，同步文件并计算 Git Workspace Diff；只有发生变化时才启动受限的 Consolidation Agent。v1 与 v2 的最终摘要格式不同。配置中的 max_unused_days 控制记忆多久未被使用后不再进入整合候选，并不等同于逐条 TTL 或立即删除。"
+                description: "Codex 在逐线程 Phase 1 之后运行 Phase 2。它先获取全局工作区锁，再按使用情况和保留条件选择 Stage 1 记录，同步文件并计算 Git Workspace Diff；只有发生变化时才启动受限的 Consolidation Agent。v1 与 v2 的最终摘要格式不同。配置中的 max_unused_days 控制记忆多久未被使用后不再进入整合候选，并不等同于逐条 TTL 或立即删除。",
                 points: [
                   "全局锁保证同一份 memory workspace 不会被多个整合任务同时修改；State DB watermark 记录已处理输入。",
                   "v1 将 raw_memories.md 和 rollout_summaries/ 同步到工作区，再由 Agent 更新 MEMORY.md、memory_summary.md 和可选 skills。",
