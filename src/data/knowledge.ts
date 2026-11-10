@@ -134,6 +134,48 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Environment", "Events", "Browser"]
           )
+
+          capability(
+            "multimodal-perception",
+            "多模态感知 Multimodal Perception",
+            "解析图像、音频、视频、文档和空间数据中的内容与结构。",
+            "多模态输入不是简单地把文件附加到 Prompt。系统需要针对不同模态执行解码、分段、特征提取、时间对齐和语义理解，并保留原始媒体与派生文本之间的引用关系。",
+            [
+              { id: "vision-encoder-vlm", title: "Vision Encoder / Vision-Language Model", summary: "从图像中提取视觉特征并理解图文关系。", description: "使用 ViT、CLIP 类视觉编码器或多模态大模型解析场景、对象、图表和屏幕截图；根据任务选择高分辨率切片、区域裁剪和视觉定位策略。", tags: ["Vision", "ViT", "VLM"] },
+              { id: "ocr-document-layout", title: "OCR / Document Layout Understanding", summary: "识别文字、表格、阅读顺序和页面布局。", description: "结合 OCR、版面检测、表格结构识别和阅读顺序恢复，把 PDF、扫描件和图片转换为带页码、坐标和区块类型的结构化内容。", tags: ["OCR", "Layout", "Table Extraction"] },
+              { id: "speech-recognition-asr", title: "Automatic Speech Recognition · ASR", summary: "将语音转成带时间戳的文本。", description: "使用 Whisper、云端 Speech API 或流式 ASR 模型进行语音转写；保留词级或片段级时间戳、语言识别结果和转写置信度。", tags: ["ASR", "Whisper", "Speech"] },
+              { id: "voice-activity-detection", title: "Voice Activity Detection / Diarization", summary: "检测语音片段并区分不同说话人。", description: "使用 VAD 识别语音起止，结合 Speaker Diarization 标注说话人片段；适合会议记录、实时语音和多说话人场景。", tags: ["VAD", "Diarization", "Audio"] },
+              { id: "video-frame-sampling", title: "Video Frame Sampling / Temporal Understanding", summary: "从视频抽帧并理解跨时间的动作和事件。", description: "按固定间隔、场景切换或运动变化抽取关键帧，结合音轨转写和时间戳建立跨模态时间线；避免对长视频无差别地处理全部帧。", tags: ["Video", "Frame Sampling", "Temporal Alignment"] },
+              { id: "spatial-sensor-perception", title: "Spatial / Sensor Perception", summary: "解析坐标、姿态、运动和传感器读数。", description: "将位置、方向、速度、深度和设备传感器数据转换为统一坐标系与时间序列，供机器人、空间 Agent 和环境感知任务使用。", tags: ["Spatial", "Sensor Fusion", "Robotics"] }
+            ],
+            ["Multimodal", "Vision", "Audio", "Video", "Spatial"]
+          ),
+          capability(
+            "perception-stream-processing",
+            "实时输入与事件流 Stream Processing",
+            "处理持续到达、需要低延迟响应的消息和环境事件。",
+            "实时 Agent 需要处理输入流而非单次请求。应设计缓冲、去抖、批处理、顺序保证、背压和断线恢复，避免事件风暴或乱序消息污染当前任务状态。",
+            [
+              { id: "websocket-stream-ingestion", title: "WebSocket / Streaming Ingestion", summary: "通过双向流接收持续输入。", description: "使用 WebSocket、SSE 或 gRPC Stream 接收语音片段、状态更新和实时事件；处理连接心跳、重连、序列号和流结束语义。", tags: ["WebSocket", "SSE", "gRPC"] },
+              { id: "message-broker-ingestion", title: "Message Broker · Kafka / NATS / RabbitMQ", summary: "通过消息代理解耦事件生产者和 Agent。", description: "使用 Kafka、NATS 或 RabbitMQ 缓冲事件、控制消费速率并支持重放；根据业务选择至少一次、至多一次或恰好一次语义。", tags: ["Kafka", "NATS", "RabbitMQ"] },
+              { id: "event-debounce-batching", title: "Debounce / Buffer / Micro-batching", summary: "合并短时间内重复或密集到达的输入。", description: "使用时间窗口、数量阈值和最大等待时间聚合事件，减少模型调用；需要定义丢弃、合并和优先级策略，不能静默丢失关键事件。", tags: ["Debounce", "Buffer", "Batching"] },
+              { id: "active-perception-loop", title: "Active Perception Loop", summary: "根据当前不确定性主动请求新的观察。", description: "Agent 根据当前任务和观察置信度决定是否重新截图、放大区域、滚动页面或调用传感器；形成 Observe → Decide → Observe 的闭环。", tags: ["Active Perception", "Observe Loop"] }
+            ],
+            ["Streaming", "Event Processing", "Backpressure", "Active Perception"]
+          ),
+          capability(
+            "perception-quality",
+            "感知质量与不确定性 Perception Quality",
+            "评估输入识别结果的置信度、歧义和可用性。",
+            "感知输出应携带置信度、时间、来源和不确定性。对低质量音频、模糊图像或冲突传感器读数，应触发补充观察或向用户澄清，而不是把猜测当作事实。",
+            [
+              { id: "confidence-calibration", title: "Confidence Calibration", summary: "校准 OCR、ASR 和分类模型的置信度。", description: "通过验证集、温度缩放或分桶评估校准模型分数，使置信度更接近实际正确概率；按阈值决定自动接受、复核或澄清。", tags: ["Confidence", "Calibration"] },
+              { id: "sensor-fusion", title: "Sensor / Modality Fusion", summary: "融合多个输入源形成更可靠的环境判断。", description: "对齐不同模态的时间和空间坐标，结合规则、概率模型或多模态模型融合图像、音频、位置和工具观测。", tags: ["Sensor Fusion", "Multimodal Fusion"] },
+              { id: "ambiguity-detection", title: "Ambiguity Detection / Clarification", summary: "发现缺失参数、歧义和相互冲突的输入。", description: "检测时间、地点、对象和任务约束是否存在多种解释；在影响执行结果的关键字段不明确时，生成最小化澄清问题。", tags: ["Ambiguity", "Clarification"] },
+              { id: "perception-anomaly-detection", title: "Input Anomaly / Drift Detection", summary: "发现异常输入和感知分布变化。", description: "监控图像质量、音频噪声、传感器范围和识别置信度分布，识别损坏文件、异常峰值、设备漂移和输入分布变化。", tags: ["Anomaly Detection", "Drift"] }
+            ],
+            ["Confidence", "Fusion", "Ambiguity", "Anomaly"]
+          ),
         ]
       ),
       moduleNode(
@@ -192,6 +234,48 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Learning Loop", "Optimization", "Feedback"]
           )
+
+          capability(
+            "reasoning-search",
+            "搜索式推理 Search-based Reasoning",
+            "通过生成、扩展和评估多个候选思路寻找高质量解。",
+            "当单次线性推理不可靠时，可以把推理过程表示为候选状态或思路空间，执行分支扩展、评分、剪枝和回溯。搜索策略需要设置深度、宽度、成本和终止条件。",
+            [
+              { id: "tree-of-thoughts", title: "Tree of Thoughts · ToT", summary: "并行探索多个中间思路并进行评估和回溯。", description: "将推理拆成中间状态，生成多个候选分支，使用评估器选择扩展方向；适合需要搜索而非单一路径生成的规划任务。", tags: ["ToT", "Search", "Backtracking"] },
+              { id: "graph-of-thoughts", title: "Graph of Thoughts · GoT", summary: "允许思路合并、重组和形成非树状依赖。", description: "将推理单元表示为图节点，允许多个分支合并、循环迭代和信息聚合；适合多源综合、复杂分析和结构化问题求解。", tags: ["GoT", "Graph Reasoning"] },
+              { id: "self-consistency", title: "Self-consistency / Best-of-N", summary: "生成多条候选推理并选择一致或得分最高的结果。", description: "对同一问题采样多条独立候选，使用多数投票、规则验证或模型评分聚合；成本更高，且一致性不等于事实正确。", tags: ["Self-consistency", "Sampling", "Best-of-N"] },
+              { id: "monte-carlo-tree-search", title: "Monte Carlo Tree Search · MCTS", summary: "通过选择、扩展、模拟和回传搜索行动空间。", description: "使用 UCT 等策略平衡探索与利用，结合价值模型或环境模拟器评估候选行动；适合具有明确状态、动作和回报的规划问题。", tags: ["MCTS", "UCT", "Planning"] },
+              { id: "beam-best-first-search", title: "Beam Search / Best-first Search", summary: "按启发式评分保留最有希望的候选状态。", description: "Beam Search 限制每层保留的候选宽度；Best-first 根据启发式分数选择下一状态。适合有可计算评价函数和明确搜索空间的任务。", tags: ["Beam Search", "Best-first", "Heuristic"] },
+              { id: "verifier-guided-search", title: "Verifier-guided Search", summary: "用独立验证器筛除无效推理分支。", description: "为候选步骤配置代码测试、约束检查、定理证明器或独立模型验证器，将验证结果反馈给搜索过程；验证器质量决定整体可靠性。", tags: ["Verifier", "Search", "Formal Check"] }
+            ],
+            ["ToT", "GoT", "Self-consistency", "MCTS", "Search"]
+          ),
+          capability(
+            "symbolic-constraint-planning",
+            "符号推理与约束规划 Symbolic & Constraint Planning",
+            "把目标、前置条件和资源约束转化为可计算的规划问题。",
+            "对于规则明确、约束严格或高风险的任务，纯自然语言规划可能不够可靠。可以结合符号状态、逻辑规则、约束求解器和模型生成计划，再用确定性求解器检查可行性。",
+            [
+              { id: "pddl-strips-planning", title: "PDDL / STRIPS Planning", summary: "用动作前置条件和效果描述可执行计划。", description: "定义初始状态、目标条件、动作前置条件和状态效果，使用经典规划器搜索满足目标的动作序列。", tags: ["PDDL", "STRIPS", "Classical Planning"] },
+              { id: "sat-smt-solving", title: "SAT / SMT Solver", summary: "将逻辑和算术约束编码后交给求解器。", description: "使用 SAT、SMT 或 Z3 检查约束是否可满足、生成变量赋值或证明冲突；适合配置验证、排程和形式化约束问题。", tags: ["SAT", "SMT", "Z3"] },
+              { id: "constraint-programming", title: "Constraint Programming · CP-SAT", summary: "求解资源、时间和组合约束问题。", description: "使用 OR-Tools CP-SAT 等求解器处理排班、资源分配、时间窗口和组合优化，并将解映射回 Agent 可执行步骤。", tags: ["CP-SAT", "OR-Tools", "Optimization"] },
+              { id: "rule-engine-reasoning", title: "Rule Engine / Production Rules", summary: "使用确定性规则推导状态和可行动作。", description: "将业务规则表达为 IF-THEN 规则、决策表或规则图；适合监管约束、资格判断和稳定业务流程，需管理规则优先级与冲突。", tags: ["Rule Engine", "Decision Table"] }
+            ],
+            ["PDDL", "SAT / SMT", "CP-SAT", "Rules", "Constraints"]
+          ),
+          capability(
+            "decision-under-uncertainty",
+            "不确定性决策 Decision under Uncertainty",
+            "在信息不完整、行动有风险时选择期望收益更高的下一步。",
+            "Agent 经常无法确定环境状态、工具成功概率或行动后果。决策层应显式表达信念、效用、风险和信息价值，并在必要时选择先观察、先验证或向用户询问。",
+            [
+              { id: "bayesian-belief-update", title: "Bayesian Belief Update", summary: "根据新证据更新对环境状态的概率判断。", description: "维护候选假设的先验概率，使用观测似然更新后验；保留证据来源和模型假设，避免把概率判断误写成确定事实。", tags: ["Bayesian", "Belief State"] },
+              { id: "pomdp-planning", title: "POMDP / Belief-state Planning", summary: "在部分可观测环境中基于信念状态规划。", description: "将真实状态不可见的问题建模为 POMDP，维护 belief state，并考虑动作、观测和奖励；适合机器人、交互式环境和长期决策。", tags: ["POMDP", "Belief State", "Robotics"] },
+              { id: "utility-risk-sensitive-policy", title: "Utility / Risk-sensitive Decision Policy", summary: "根据收益、成本和风险选择行动。", description: "定义效用函数、风险阈值和失败代价；对不可逆操作使用更保守的策略，并将安全约束作为硬约束而不是普通评分项。", tags: ["Utility", "Risk", "Decision Theory"] },
+              { id: "value-of-information", title: "Value of Information · VOI", summary: "判断额外搜索、观察或提问是否值得成本。", description: "比较获取新信息前后的期望决策价值与信息获取成本，决定是否再搜索一次、读取文件、调用工具或向用户澄清。", tags: ["VOI", "Information Gain", "Clarification"] }
+            ],
+            ["Bayesian", "POMDP", "Utility", "Risk", "VOI"]
+          ),
         ]
       ),
       moduleNode(
@@ -743,6 +827,49 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Grounding", "Citation", "Faithfulness"]
           )
+
+          capability(
+            "query-transformation",
+            "查询理解与改写 Query Understanding",
+            "把用户问题转换成更适合知识检索的查询表达。",
+            "用户问题可能含有指代、省略、多个子问题或与知识库术语不一致。查询处理应在保留原意的前提下生成检索查询，并避免把改写过程引入的新事实当成用户输入。",
+            [
+              { id: "query-rewriting", title: "Query Rewriting / Expansion", summary: "补全指代、术语和检索关键词。", description: "根据会话上下文和领域词典生成更明确的检索表达，可添加同义词、实体别名和关键限定词；保留原始 Query 供审计。", tags: ["Query Rewrite", "Expansion"] },
+              { id: "multi-query-retrieval", title: "Multi-query Retrieval", summary: "从不同角度生成多个查询并合并召回结果。", description: "将一个问题改写为多个互补查询，分别检索后去重和融合；适合多术语、多视角和召回不足的场景。", tags: ["Multi-query", "Recall"] },
+              { id: "query-decomposition", title: "Query Decomposition", summary: "把复杂问题拆成可独立检索的子问题。", description: "识别问题中的实体、时间、比较和因果子任务，分别检索证据后再聚合；需要保留子问题与最终结论的依赖关系。", tags: ["Decomposition", "Multi-hop RAG"] },
+              { id: "hyde-retrieval", title: "HyDE · Hypothetical Document Embeddings", summary: "先生成假设性答案文本，再用其向量进行召回。", description: "让模型生成可能包含目标信息的假设文档并对其编码，以缓解 Query 与文档表达差异；必须将假设文本仅用于检索，不能作为证据引用。", tags: ["HyDE", "Embedding", "Query Expansion"] },
+              { id: "self-query-retriever", title: "Self-query / Metadata-aware Retrieval", summary: "从自然语言问题中提取元数据过滤条件。", description: "识别用户、时间、文档类型、项目和权限等结构化约束，生成 metadata filter 与文本查询；执行前校验过滤字段和权限范围。", tags: ["Self-query", "Metadata Filter"] }
+            ],
+            ["Query Rewrite", "Multi-query", "Decomposition", "HyDE"]
+          ),
+          capability(
+            "advanced-indexing",
+            "高级索引与检索结构 Advanced Indexing",
+            "根据语料规模、查询类型和延迟目标选择索引结构。",
+            "Embedding 只是检索管线的一部分。实际系统还需要选择向量索引、稀疏倒排索引、多向量表示、父子片段和字段索引，并权衡召回率、内存、更新成本和查询延迟。",
+            [
+              { id: "hnsw-ann-index", title: "HNSW / ANN Index", summary: "通过近似最近邻图结构加速向量检索。", description: "使用 HNSW 等 ANN 索引在高维向量中快速查找近邻，调整 M、efConstruction 和 efSearch 等参数平衡召回率、内存和延迟。", tags: ["HNSW", "ANN", "Vector Index"] },
+              { id: "ivf-pq-index", title: "IVF / Product Quantization", summary: "通过聚类和向量压缩降低大规模索引成本。", description: "使用 IVF 划分向量桶，并用 Product Quantization 压缩向量表示；适合规模较大且可接受近似误差的检索场景。", tags: ["IVF", "PQ", "Compression"] },
+              { id: "colbert-late-interaction", title: "ColBERT / Late Interaction", summary: "保留 Token 级向量并进行细粒度匹配。", description: "对 Query 和文档分别编码多个 Token 向量，再用 MaxSim 等机制进行晚交互匹配；比单向量更细粒度，但存储和计算成本更高。", tags: ["ColBERT", "Late Interaction", "Multi-vector"] },
+              { id: "parent-child-retrieval", title: "Parent-child / Hierarchical Retrieval", summary: "用小片段召回，再返回更完整的父级上下文。", description: "索引细粒度 child chunks 以提高召回精度，命中后返回 parent section 或相邻上下文；适合长文档和结构化手册。", tags: ["Parent-child", "Hierarchical Retrieval"] },
+              { id: "sql-structured-retrieval", title: "Structured / SQL Retrieval", summary: "对表格和结构化业务数据执行精确查询。", description: "将自然语言转换为受限 SQL、GraphQL 或分析查询，经过 Schema 校验、权限过滤和只读策略后执行；不应把结构化查询全部替换成向量搜索。", tags: ["SQL", "Text-to-SQL", "Structured Data"] }
+            ],
+            ["HNSW", "IVF-PQ", "ColBERT", "Parent-child", "SQL"]
+          ),
+          capability(
+            "knowledge-freshness-governance",
+            "知识更新与权限治理 Freshness & Governance",
+            "让索引与原始知识源保持同步，并遵守来源权限。",
+            "知识库会持续变化。生产系统需要处理新增、修改、删除、版本、权限变更和重建任务；如果只做一次性导入，召回结果可能过期或泄露已撤销访问的数据。",
+            [
+              { id: "incremental-indexing-cdc", title: "Incremental Indexing / CDC", summary: "根据源数据变化增量更新索引。", description: "使用 Webhook、CDC、更新时间戳或内容哈希发现变更，只重建受影响文档和向量；通过重试队列保证失败任务最终可恢复。", tags: ["Incremental Indexing", "CDC", "Webhook"] },
+              { id: "document-versioning-dedup", title: "Document Versioning / Deduplication", summary: "管理文档版本并避免重复索引。", description: "使用稳定文档 ID、内容哈希、版本号和有效时间管理更新；区分同一文档的新版本与内容相似但来源不同的文档。", tags: ["Versioning", "Hash", "Deduplication"] },
+              { id: "acl-aware-retrieval", title: "ACL-aware Retrieval", summary: "检索阶段强制执行原始文档访问权限。", description: "同步源系统 ACL 和用户身份，在召回前或可信服务端重排前执行权限过滤；权限变更或撤销时同步清理缓存和索引可见性。", tags: ["ACL", "Authorization", "Tenant Isolation"] },
+              { id: "index-rebuild-blue-green", title: "Index Rebuild / Blue-green Swap", summary: "在索引升级或模型更换时安全重建并切换。", description: "在新索引中离线重建和验证召回质量，完成后原子切换别名或版本指针；保留回滚能力，避免重建期间查询不可用。", tags: ["Reindex", "Blue-green", "Rollback"] },
+              { id: "retrieval-cache-invalidation", title: "Retrieval Cache Invalidation", summary: "当文档或权限变化时使缓存失效。", description: "为缓存键绑定 Query、索引版本、权限范围和数据版本；源数据变更、删除或权限撤销时主动失效相关缓存。", tags: ["Cache Invalidation", "Freshness"] }
+            ],
+            ["Freshness", "CDC", "ACL", "Versioning", "Reindex"]
+          ),
         ]
       ),
       moduleNode(
@@ -800,6 +927,7 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "rest-api-client", title: "REST / GraphQL Client", summary: "通过 API 客户端访问业务系统。", description: "封装认证、分页、速率限制、错误映射和数据类型，避免模型直接拼接任意 HTTP 请求。", tags: ["REST", "GraphQL"] },
               { id: "mcp-client-server", title: "MCP Client / Server", summary: "通过 MCP 暴露和调用工具及资源。", description: "使用 MCP Client 发现服务器能力，通过 stdio 或 Streamable HTTP 传输调用工具，并隔离服务器信任边界。", tags: ["MCP", "stdio", "HTTP"], resources: [{ label: "MCP Documentation", url: "https://modelcontextprotocol.io/docs" }] },
+              { id: "codex-mcp-client-example", title: "Codex · MCP Client Integration", summary: "将 MCP Server 的工具和资源接入统一 Tool Runtime。", description: "Codex 维护 MCP Server 连接，将远程工具定义规范化为模型可调用的 ToolSpec，并通过统一执行层调用；同时提供 MCP Resource 的列举和读取处理器。", tags: ["Codex", "MCP", "Tool Runtime"], resources: [{ label: "Codex MCP Handler", url: "https://github.com/openai/codex/blob/main/codex-rs/core/src/tools/handlers/mcp.rs" }] },
               { id: "browser-automation", title: "Browser Automation", summary: "通过浏览器自动化完成网页操作。", description: "使用 Playwright 等工具进行页面导航、元素定位、表单交互和状态验证，并限制可访问域名与下载行为。", tags: ["Playwright", "Browser"] },
               { id: "computer-use-gui", title: "Computer Use / GUI Automation", summary: "通过屏幕观察和输入动作操作桌面应用与图形界面。", description: "使用截图、Accessibility Tree、DOM 或视觉定位观察界面，再执行点击、键盘输入、滚动和拖拽；每次动作后重新观察并验证状态。与 Browser Automation 相比，Computer Use 可操作浏览器以外的桌面应用，但更依赖视觉反馈、坐标稳定性和执行权限。", tags: ["Computer Use", "GUI", "Screenshot", "Accessibility"] }
             ],
@@ -813,10 +941,81 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "oauth-scopes", title: "OAuth Scopes", summary: "使用细粒度授权范围访问外部服务。", description: "为用户和 Agent 申请最小 OAuth Scope，使用短期 Token，安全存储并支持撤销和轮换。", tags: ["OAuth", "Least Privilege"] },
               { id: "policy-engine", title: "Policy Engine", summary: "在执行前按身份和资源策略授权。", description: "使用 RBAC、ABAC 或 OPA 等策略引擎判断主体、动作、资源和上下文是否满足授权条件。", tags: ["RBAC", "ABAC", "OPA"] },
-              { id: "execution-sandbox", title: "Execution Sandbox", summary: "隔离代码、文件和网络执行环境。", description: "使用容器、微虚拟机或受限运行时控制文件系统、网络出口、CPU、内存、进程和执行时间。", tags: ["Container", "MicroVM", "Isolation"] }
+              { id: "execution-sandbox", title: "Execution Sandbox", summary: "隔离代码、文件和网络执行环境。", description: "使用容器、微虚拟机或受限运行时控制文件系统、网络出口、CPU、内存、进程和执行时间。", tags: ["Container", "MicroVM", "Isolation"] },
+              { id: "codex-workspace-sandbox-example", title: "Codex · Workspace-write Sandbox", summary: "将文件写入范围限制在工作目录和显式可写目录。", description: "Codex 的 workspace-write sandbox 允许读取文件，并限制写入 cwd 和 writable_roots；访问其他目录需要审批，网络访问由独立策略控制。", tags: ["Codex", "Filesystem Sandbox", "Approval"], resources: [{ label: "Codex Workspace-write Policy", url: "https://github.com/openai/codex/blob/main/codex-rs/prompts/templates/permissions/sandbox_mode/workspace_write.md" }] }
             ],
             ["OAuth", "Policy", "Sandbox"]
           )
+
+          capability(
+            "tool-runtime-adapters",
+            "工具运行时与执行适配 Tool Runtime Adapters",
+            "把模型提出的工具调用安全地转换成真实执行，并统一处理不同执行环境。",
+            "工具定义不等于工具执行。运行时需要完成参数校验、身份与权限检查、执行环境选择、输出捕获和副作用验证；同一个 Agent 可能同时调用 API、Shell、文件系统、数据库和远程工具。",
+            [
+              { id: "shell-cli-execution", title: "Shell / CLI Execution", summary: "通过命令行执行构建、测试和系统操作。", description: "封装 Shell、PowerShell 或专用 CLI 执行器，限制工作目录、环境变量、命令权限、超时和输出大小；高风险命令需要审批或隔离环境。", tags: ["Shell", "CLI", "Process"] },
+              { id: "filesystem-git-operations", title: "Filesystem / Git Operations", summary: "通过受控文件操作和版本控制修改项目。", description: "提供文件读写、目录枚举、补丁应用、Git diff、分支和提交操作；校验路径边界、文件大小、符号链接和并发修改。", tags: ["Filesystem", "Git", "Patch"] },
+              { id: "database-tool-adapter", title: "Database Tool Adapter", summary: "通过结构化工具执行数据库查询和受控写入。", description: "使用只读连接、参数化 SQL、Schema 限制和事务封装数据库操作；写入操作应有授权、幂等键和执行后验证。", tags: ["SQL", "Database", "Transactions"] },
+              { id: "rpc-tool-adapter", title: "RPC / gRPC Tool Adapter", summary: "通过类型化 RPC 接口调用远程服务。", description: "将 protobuf 或 RPC 方法映射为工具 Schema，统一认证、超时、流式响应和错误语义；对长流和重试定义明确的取消及幂等策略。", tags: ["RPC", "gRPC", "Protobuf"] },
+              {
+                id: "codex-mcp-runtime",
+                title: "Codex · MCP Tool Runtime",
+                summary: "发现 MCP Server 工具，将其 Schema 规范化后注册为模型可调用工具。",
+                description: "Codex 的 MCP Handler 将远程 ToolInfo 转换为 Responses API ToolSpec，缓存规范化后的工具定义，并在执行时通过 MCP Client 调用远端服务器；同时支持 MCP Resources 等资源读取入口。",
+                points: [
+                  "工具定义包含名称、描述和参数 Schema，并根据工具来源处理命名空间。",
+                  "执行链路经过统一 Tool Runtime，采集调用来源、耗时和遥测信息。",
+                  "MCP Server 是外部信任边界，仍需单独配置连接、授权和工具审批。"
+                ],
+                tags: ["Codex", "MCP", "ToolSpec", "Runtime"],
+                resources: [
+                  { label: "Codex MCP Tool Handler", url: "https://github.com/openai/codex/blob/main/codex-rs/core/src/tools/handlers/mcp.rs" }
+                ]
+              }
+            ],
+            ["Shell", "Filesystem", "Git", "Database", "RPC", "MCP"]
+          ),
+          capability(
+            "tool-result-streaming",
+            "工具结果与长任务管理 Tool Results & Long-running Jobs",
+            "处理大结果、分页结果、流式输出和需要等待的外部任务。",
+            "工具返回值可能超出上下文窗口，或需要数分钟到数小时才能完成。工具层应提供分页、截断、文件引用、异步任务 ID、进度事件和取消机制，而不是把所有输出直接塞回模型。",
+            [
+              { id: "tool-output-truncation-artifact", title: "Output Truncation / Artifact Reference", summary: "截断超大输出并将完整结果保存为可读取产物。", description: "为模型返回摘要、关键片段和文件引用，完整内容保存在工作区或对象存储；提供后续按需读取方式，避免丢失证据。", tags: ["Truncation", "Artifacts", "Output Budget"] },
+              { id: "tool-pagination-cursor", title: "Pagination / Cursor-based Results", summary: "通过游标分批返回大型结果集。", description: "使用 offset、cursor 或 continuation token 分页，保持稳定排序和权限范围；模型只读取与当前任务相关的页面。", tags: ["Pagination", "Cursor"] },
+              { id: "tool-streaming-progress", title: "Streaming Progress / Job Polling", summary: "持续报告长时间工具任务的进度和最终结果。", description: "工具先返回 job_id，再通过轮询、Webhook 或事件流报告状态；支持取消、超时、重试和最终结果确认。", tags: ["Streaming", "Polling", "Job ID"] },
+              { id: "tool-cancellation-compensation", title: "Cancellation / Compensation", summary: "支持取消执行并对部分副作用执行补偿。", description: "定义取消信号传播、可中断步骤和已完成副作用的补偿操作；对于无法撤销的外部动作，应在执行前明确告知用户。", tags: ["Cancellation", "Compensation", "Saga"] }
+            ],
+            ["Streaming", "Pagination", "Artifacts", "Cancellation"]
+          ),
+          capability(
+            "tool-extension-governance",
+            "工具扩展与供应治理 Tool Extensions & Governance",
+            "管理插件、工具包和外部服务器的发现、加载、升级与信任。",
+            "工具生态不仅是接口集合，还包含第三方代码、权限声明和版本依赖。扩展加载应有清晰来源、能力清单、签名或校验、版本约束和隔离边界。",
+            [
+              { id: "tool-registry-manifest", title: "Tool Registry / Capability Manifest", summary: "通过清单声明工具能力、参数、来源和权限需求。", description: "维护工具注册表与机器可读 Manifest，声明工具名称、版本、Schema、所需 Scope、网络和文件权限；加载前执行校验。", tags: ["Registry", "Manifest", "Capabilities"] },
+              { id: "plugin-version-dependency", title: "Plugin Versioning / Dependency Management", summary: "管理插件版本、依赖和兼容性。", description: "锁定扩展版本和依赖，记录兼容的 Agent Runtime 版本，使用分阶段升级和回滚避免供应链变化破坏执行。", tags: ["Plugin", "SemVer", "Dependencies"] },
+              { id: "lazy-tool-loading", title: "Lazy Tool Loading / Tool Search", summary: "只向模型暴露当前任务相关的工具。", description: "先提供工具目录或搜索工具，模型发现能力后再加载详细 Schema；控制工具描述 Token 占用并避免无关工具干扰选择。", tags: ["Lazy Loading", "Tool Search", "Token Budget"] },
+              { id: "tool-provenance-signing", title: "Tool Provenance / Signature Verification", summary: "验证工具来源、发布者和制品完整性。", description: "通过发布者身份、签名、哈希和软件物料清单验证扩展来源；对高权限工具执行人工审核和持续漏洞扫描。", tags: ["Supply Chain", "Signing", "SBOM"] },
+              {
+                id: "claude-code-hooks-example",
+                title: "Claude Code · Lifecycle Hooks",
+                summary: "通过工具和会话生命周期事件运行确定性脚本。",
+                description: "Claude Code Hooks 可在 SessionStart、PreToolUse、PostToolUse、Stop 等事件触发命令或其他处理器，用于验证、审计、格式化和策略执行；Hook 是运行时自动触发的程序逻辑，不等同于模型自己选择调用的普通 Tool。",
+                points: [
+                  "PreToolUse 可在工具执行前检查参数或阻止操作。",
+                  "PostToolUse 可对执行结果执行后处理和记录。",
+                  "Hook 的配置和脚本本身也需要权限、来源和执行环境治理。"
+                ],
+                tags: ["Claude Code", "Hooks", "Lifecycle Events"],
+                resources: [
+                  { label: "Claude Code Hooks Documentation", url: "https://code.claude.com/docs/en/hooks" }
+                ]
+              }
+            ],
+            ["Registry", "Plugins", "Lazy Loading", "Provenance", "Hooks"]
+          ),
         ]
       ),
       moduleNode(
@@ -835,7 +1034,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "finite-state-machine", title: "Finite State Machine", summary: "使用状态机管理任务状态与转移。", description: "定义状态、事件、守卫条件和终止状态，适合审批、订单处理和明确阶段的 Agent 任务。", tags: ["FSM", "State Machine"] },
               { id: "graph-workflow", title: "Graph Workflow · LangGraph", summary: "用节点和边组织有状态 Agent 流程。", description: "将模型调用、工具执行和条件路由建模为图节点与边，使用共享 State 和循环边管理复杂工作流。", tags: ["LangGraph", "Graph"], resources: [{ label: "LangGraph Documentation", url: "https://docs.langchain.com/oss/python/langgraph/overview" }] },
-              { id: "checkpoint-persistence", title: "Checkpoint Persistence", summary: "保存执行快照并支持断点恢复。", description: "在关键节点持久化状态、已完成步骤和执行游标，恢复时验证版本和副作用幂等性。", tags: ["Checkpoint", "Persistence"] }
+              { id: "checkpoint-persistence", title: "Checkpoint Persistence", summary: "保存执行快照并支持断点恢复。", description: "在关键节点持久化状态、已完成步骤和执行游标，恢复时验证版本和副作用幂等性。", tags: ["Checkpoint", "Persistence"] },
+              { id: "codex-agent-lifecycle-example", title: "Codex · Subagent Lifecycle", summary: "管理子 Agent 的创建、等待、恢复和关闭。", description: "Codex 为子 Agent 维护独立 Thread、配置快照和运行状态，并通过控制工具完成 Spawn、Wait、Resume 和 Close；父子任务的状态和权限在运行时管理。", tags: ["Codex", "Subagent", "Lifecycle"], resources: [{ label: "Codex Agent Control", url: "https://github.com/openai/codex/tree/main/codex-rs/core/src/agent/control" }] }
             ],
             ["State Machine", "Graph", "Checkpoint"]
           ),
@@ -877,6 +1077,66 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Queue", "Durable Execution", "Scheduler"]
           )
+
+          capability(
+            "workflow-patterns",
+            "工作流编排模式 Workflow Patterns",
+            "选择适合任务结构的串行、并行、路由、循环和评估优化模式。",
+            "Agent 工作流不只有单一的 Planner-Executor。应根据任务依赖、可并行性和错误恢复需求选择模式；复杂系统可以组合多种模式，但需要明确停止条件和结果汇总责任。",
+            [
+              { id: "sequential-chain", title: "Sequential Chain", summary: "按确定顺序执行多个处理阶段。", description: "将输入解析、计划、工具执行、验证和输出串成阶段流水线；适合依赖明确的流程，并在每一步定义输入输出契约。", tags: ["Sequential", "Pipeline"] },
+              { id: "router-workflow", title: "Router / Dispatch Workflow", summary: "根据任务类型选择不同 Agent 或子工作流。", description: "使用规则、分类器或模型将任务路由到专门工作流；保留默认路由、低置信度回退和路由决策日志。", tags: ["Router", "Dispatch"] },
+              { id: "parallel-fanout-fanin", title: "Fan-out / Fan-in", summary: "并行分发独立子任务，再统一汇总。", description: "把可并行的检索、分析或编码任务分发给多个 Worker，等待结果或超时后聚合；处理部分失败、重复结果和冲突。", tags: ["Fan-out", "Fan-in", "Parallel"] },
+              { id: "iterative-refinement-loop", title: "Iterative Refinement Loop", summary: "在生成、评估和修订之间循环直到满足停止条件。", description: "组合 Generator、Critic、Verifier 和执行反馈，迭代修正计划或产物；设置最大轮次、预算和通过阈值，避免无限循环。", tags: ["Loop", "Evaluator-Optimizer"] },
+              { id: "hierarchical-orchestrator", title: "Hierarchical Orchestrator", summary: "由上层协调者管理多个层级的子 Agent。", description: "将复杂任务拆成子目标，由不同层级的协调者继续分解和分派；需要控制委派深度、上下文传递和最终责任归属。", tags: ["Hierarchical", "Orchestrator"] }
+            ],
+            ["Sequential", "Router", "Parallel", "Loop", "Hierarchical"]
+          ),
+          capability(
+            "distributed-state-reliability",
+            "分布式状态与恢复 Distributed State & Recovery",
+            "保证跨进程、跨服务和长时间运行的 Agent 工作流可恢复。",
+            "工作流可能在模型调用、工具执行或等待人工审批时中断。可靠编排需要持久化事件和检查点，处理重复投递、部分完成、补偿和状态版本迁移。",
+            [
+              { id: "event-sourcing-workflow", title: "Event Sourcing", summary: "通过追加事件记录工作流状态变化。", description: "将任务创建、步骤完成、工具结果、审批和失败记录为不可变事件，通过重放事件重建当前状态；需要处理事件 Schema 版本和隐私保留。", tags: ["Event Sourcing", "Event Log"] },
+              { id: "saga-compensation", title: "Saga / Compensation", summary: "用补偿步骤管理跨服务的部分成功。", description: "将长事务拆成多个本地事务，每一步定义补偿动作；失败时按策略回滚已完成步骤或进入人工恢复。", tags: ["Saga", "Compensation", "Distributed Transaction"] },
+              { id: "transactional-outbox", title: "Transactional Outbox / Inbox", summary: "保证数据库状态变更与消息发布的一致性。", description: "在同一数据库事务中写入业务状态和待发布事件，再由 Dispatcher 投递；消费者使用 Inbox 或幂等键处理重复消息。", tags: ["Outbox", "Inbox", "Exactly-once Effect"] },
+              { id: "workflow-checkpoint-replay", title: "Checkpoint / Replay / Resume", summary: "保存执行快照并从最近成功节点恢复。", description: "保存状态快照、事件游标和已完成副作用，恢复时检查工具幂等性与外部状态；支持重放和人工定位失败步骤。", tags: ["Checkpoint", "Replay", "Resume"] },
+              { id: "workflow-version-migration", title: "Workflow Versioning / Migration", summary: "在工作流升级后恢复旧任务并迁移状态。", description: "为工作流定义版本和兼容策略；长任务恢复时选择旧定义继续、执行状态迁移或安全终止，避免新代码错误解释旧快照。", tags: ["Workflow Versioning", "Migration"] }
+            ],
+            ["Event Sourcing", "Saga", "Outbox", "Checkpoint", "Replay"]
+          ),
+          capability(
+            "agent-communication-coordination",
+            "Agent 通信与协同 Agent Communication",
+            "管理 Agent 之间的消息、共享状态、任务交接和协作协议。",
+            "多 Agent 协作不仅是启动多个模型实例，还需要定义消息语义、收件箱、状态可见性、交接责任和冲突处理。通信协议应区分消息已发送、已接收、已处理和任务已完成。",
+            [
+              { id: "agent-message-passing", title: "Message Passing / Mailbox", summary: "通过消息和收件箱实现 Agent 间异步通信。", description: "为每个 Agent 建立消息队列或 Mailbox，定义发送、接收、确认、重试和未读消息保留策略；适合异步 Worker 和长生命周期 Agent。", tags: ["Message Passing", "Mailbox", "Async"] },
+              { id: "shared-state-blackboard", title: "Shared State / Blackboard", summary: "多个 Agent 通过共享工作区协同。", description: "使用共享数据库、任务板或文件工作区发布发现和中间产物；通过锁、版本号和写入权限避免并发覆盖与无效状态。", tags: ["Shared State", "Blackboard"] },
+              { id: "agent-consensus-debate", title: "Debate / Consensus / Voting", summary: "通过独立观点、交叉质询或投票处理分歧。", description: "让多个 Agent 独立给出结论，再使用证据交叉审查、加权投票或仲裁者整合；需要避免同源模型带来的相关性错误。", tags: ["Debate", "Consensus", "Voting"] },
+              { id: "agent-deadlock-loop-detection", title: "Deadlock / Loop / Delegation-depth Detection", summary: "识别循环委派、互相等待和过深的 Agent 调用链。", description: "跟踪调用图、父子关系、等待状态和最大委派深度；使用超时、取消传播和循环检测防止资源耗尽。", tags: ["Deadlock", "Loop Detection", "Budget"] },
+              {
+                id: "codex-multi-agent-runtime",
+                title: "Codex · Spawned Agents & Mailboxes",
+                summary: "通过 Spawn、Send Input、Wait 和 Resume 管理子 Agent 生命周期与消息。",
+                description: "Codex 开源实现包含子 Agent 启动、角色配置、权限配置、消息传递和 Mailbox；未加载的本地会话仍可暂存消息，Agent 恢复后再接收。它不是单纯并行调用多个模型，而是有生命周期和消息状态管理的协作运行时。",
+                points: [
+                  "Spawn 为子 Agent 建立独立线程和执行配置，并根据角色与权限构建子 Agent 上下文。",
+                  "Mailbox 保存待处理消息，支持 watch、take 和未读消息保留。",
+                  "工具层提供 spawn、send_input、wait、resume_agent 和 close_agent 等控制入口。",
+                  "父子 Agent 的权限配置需要受限，消息与交接上下文需要保留来源。"
+                ],
+                tags: ["Codex", "Subagents", "Mailbox", "Handoff"],
+                resources: [
+                  { label: "Codex Agent Spawn", url: "https://github.com/openai/codex/blob/main/codex-rs/core/src/agent/control/spawn.rs" },
+                  { label: "Codex Agent Mailbox", url: "https://github.com/openai/codex/blob/main/codex-rs/core/src/agent/control/mailbox.rs" },
+                  { label: "Codex Multi-agent Tools", url: "https://github.com/openai/codex/tree/main/codex-rs/core/src/tools/handlers/multi_agents" }
+                ]
+              }
+            ],
+            ["Message Passing", "Mailbox", "Blackboard", "Consensus", "Codex"]
+          ),
         ]
       ),
       moduleNode(
@@ -894,6 +1154,7 @@ export const knowledgeTree: KnowledgeItem = node(
             "Prompt 应作为可测试、可版本化的工程资产管理，避免将业务逻辑散落在多个字符串中。",
             [
               { id: "system-prompt-template", title: "System Prompt Template", summary: "定义角色、目标、规则和工具使用边界。", description: "将系统级约束与动态任务参数分离，明确禁止事项、失败策略和停止条件。", tags: ["System Prompt", "Template"] },
+              { id: "codex-agents-md-example", title: "Codex · Hierarchical AGENTS.md", summary: "按项目根目录和当前目录加载层级化项目指令。", description: "Codex 根据项目根标记查找 AGENTS.md，并按根目录到当前工作目录的顺序合并项目指令；该机制属于任务上下文组装，不是 Local Memories。", tags: ["Codex", "AGENTS.md", "Project Context"], resources: [{ label: "Codex AGENTS.md Implementation", url: "https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs" }] },
               { id: "prompt-versioning", title: "Prompt Versioning", summary: "记录提示词版本并支持对比和回滚。", description: "为 Prompt 建立版本号、变更记录和测试样本，发布前执行离线回归并支持快速回滚。", tags: ["Versioning", "A/B Test"] },
               { id: "prompt-composition", title: "Prompt Composition", summary: "通过模块化片段组合复杂提示词。", description: "将安全规则、角色说明、任务指令、输出格式和示例拆成可复用片段，按任务类型组合。", tags: ["Composition", "Templates"] },
               { id: "agent-skills-package", title: "Agent Skills · SKILL.md Package", summary: "将领域指令、工作流程、脚本和示例封装为按需加载的能力包。", description: "Skill 通常由入口说明文件和可选 scripts、references、assets 组成；Agent 先发现 Skill 的名称与用途，再在任务相关时加载详细指令或执行脚本。它不同于单次 Prompt，也不同于需要即时调用的 Tool。", tags: ["Agent Skills", "SKILL.md", "Progressive Disclosure"], resources: [{ label: "Agent Skills Specification", url: "https://agentskills.io/specification" }] }
@@ -937,6 +1198,87 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Schema", "Parser", "Validation"]
           )
+
+          capability(
+            "instruction-hierarchy",
+            "指令层级与动态加载 Instruction Hierarchy",
+            "管理系统、开发者、用户、项目和任务级指令的优先级与作用范围。",
+            "Agent 指令来源可能包括系统规则、开发者策略、用户要求、仓库说明、Skill 和动态工具描述。需要定义优先级、作用域、合并方式、预算和冲突处理，避免把所有文本无差别拼接。",
+            [
+              { id: "instruction-priority-resolution", title: "Instruction Priority / Conflict Resolution", summary: "定义不同来源指令的优先级和冲突处理。", description: "明确系统、开发者、组织、项目和用户指令之间的层级；对冲突保留来源与适用范围，禁止低信任内容覆盖高优先级规则。", tags: ["Instruction Hierarchy", "Conflict"] },
+              { id: "hierarchical-project-instructions", title: "Hierarchical Project Instructions", summary: "沿目录层级加载适用的项目指令。", description: "从用户级、仓库根目录和当前子目录收集指令文件，按范围合并并设置字节或 Token 预算；常见形式包括 AGENTS.md、CLAUDE.md 和项目规则目录。", tags: ["AGENTS.md", "CLAUDE.md", "Project Rules"] },
+              { id: "dynamic-instruction-loading", title: "Dynamic Instruction / Skill Loading", summary: "按当前任务动态加载规则和可复用能力说明。", description: "先暴露简短能力目录，再根据任务相关性读取 Skill、参考文档和规则文件；记录加载来源和版本，避免不相关内容占用上下文。", tags: ["Skills", "Lazy Loading", "Progressive Disclosure"] },
+              {
+                id: "codex-agents-md-loader",
+                title: "Codex · AGENTS.md Discovery",
+                summary: "从项目根目录到当前工作目录逐层发现并合并 AGENTS.md。",
+                description: "Codex 通过项目根标记定位仓库边界，收集根目录到当前目录之间的 AGENTS.md 并按层级拼接；支持本地 override 文件、项目文档预算和不可信项目跳过策略。",
+                points: [
+                  "默认使用 .git 等 project root marker 定位项目根目录。",
+                  "只收集项目根到当前工作目录范围内的说明，不继续向仓库根之外无限遍历。",
+                  "项目说明可设置最大字节预算；不可信项目或预算为零时可以跳过加载。"
+                ],
+                tags: ["Codex", "AGENTS.md", "Instruction Discovery"],
+                resources: [
+                  { label: "Codex AGENTS.md Loader", url: "https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs" }
+                ]
+              }
+            ],
+            ["Instruction Hierarchy", "Project Rules", "Skills", "Dynamic Loading"]
+          ),
+          capability(
+            "context-selection-ranking",
+            "上下文选择与排序 Context Selection",
+            "从多种候选来源中挑选当前任务真正需要的上下文。",
+            "上下文来源包括当前对话、长期记忆、RAG 证据、项目指令、工具输出和执行状态。选择时应结合相关性、时效性、来源可信度、权限和 Token 成本，而不是简单按时间追加。",
+            [
+              { id: "context-relevance-ranking", title: "Relevance / Recency Ranking", summary: "综合相关性、时间和重要性对上下文片段排序。", description: "将 Query 相关度、最近使用时间、任务优先级、置信度和来源可信度组合打分；对过时或低信任片段降低优先级。", tags: ["Relevance", "Recency", "Ranking"] },
+              { id: "context-source-priority", title: "Source Priority / Authority", summary: "按来源权威性和适用范围选择事实。", description: "区分当前代码、官方文档、用户明确决定、历史摘要、模型推断和第三方内容；对可变化事实优先读取当前权威来源。", tags: ["Source Authority", "Provenance"] },
+              { id: "context-conflict-resolution", title: "Context Conflict Resolution", summary: "识别不同来源中的冲突并保留适用范围。", description: "比较版本、时间、用户确认和来源可信度；无法安全消解时并列展示冲突或请求用户澄清，不应静默拼接矛盾事实。", tags: ["Conflict", "Temporal Validity"] },
+              { id: "context-source-budgeting", title: "Context Source Budgeting", summary: "在不同上下文来源之间分配 Token 预算。", description: "为系统规则、任务目标、工具结果、记忆和 RAG 证据设定预算与优先级；为长结果保留可追溯引用，支持后续按需展开。", tags: ["Token Budget", "Selection"] }
+            ],
+            ["Ranking", "Authority", "Conflict", "Budget"]
+          ),
+          capability(
+            "context-window-lifecycle",
+            "上下文窗口与生命周期 Context Window Management",
+            "控制上下文长度、压缩时机和历史保留策略。",
+            "长会话会持续消耗上下文窗口。系统需要估算 Token、识别压缩触发点、保留重要状态和未完成事项，并避免压缩后破坏工具调用、引用或多 Agent 通信的完整性。",
+            [
+              { id: "token-counting-budget", title: "Token Counting / Budget Allocation", summary: "估算输入长度并为各类上下文预留预算。", description: "使用对应模型 Tokenizer 或近似估算器计算消息、工具 Schema 和多模态输入成本；预留输出和安全余量，防止请求超过模型限制。", tags: ["Tokenizer", "Token Budget"] },
+              { id: "context-compaction", title: "Context Compaction / Summarization", summary: "在接近窗口上限时压缩历史并保留关键状态。", description: "使用模型摘要、结构化状态提取或保留关键消息的方式替换冗长历史；保留目标、约束、已完成步骤、工具结果和未解决事项，并标注压缩边界。", tags: ["Compaction", "Summarization"] },
+              { id: "context-trimming-sliding-window", title: "Trimming / Sliding Window", summary: "删除或移出低价值旧内容以控制上下文长度。", description: "按轮次、Token、时间或消息类型裁剪历史；对工具输出和大段引用优先采用摘要或外部引用，避免误删仍然有效的约束。", tags: ["Trimming", "Sliding Window"] },
+              { id: "prefix-kv-cache", title: "Prefix Cache / KV Cache Reuse", summary: "复用稳定上下文前缀或模型 KV 状态。", description: "通过 Prompt Prefix Cache 或推理服务 KV Cache 复用重复的系统指令和上下文前缀；缓存命中依赖前缀一致性、模型和服务端策略。", tags: ["Prefix Cache", "KV Cache"] },
+              {
+                id: "codex-context-compaction",
+                title: "Codex · Automatic Context Compaction",
+                summary: "接近上下文限制时生成压缩摘要并替换历史上下文。",
+                description: "Codex 的 compact 模块维护压缩触发、摘要生成、历史替换和压缩元数据；支持压缩前后 Hook、保留待处理输入和不同压缩策略。压缩后的摘要属于当前线程上下文管理，不等同于跨会话 Local Memories。",
+                points: [
+                  "自动压缩由上下文预算和运行策略触发。",
+                  "压缩历史会记录元数据并替换会话历史片段。",
+                  "PreCompact / PostCompact Hook 可在压缩前后执行额外逻辑。"
+                ],
+                tags: ["Codex", "Compaction", "Context Window"],
+                resources: [
+                  { label: "Codex Context Compaction", url: "https://github.com/openai/codex/blob/main/codex-rs/core/src/compact.rs" }
+                ]
+              }
+            ],
+            ["Token Budget", "Compaction", "Trimming", "Cache"]
+          ),
+          capability(
+            "context-provenance-trust",
+            "上下文来源与信任 Context Provenance & Trust",
+            "标注上下文来源、信任等级和可引用证据边界。",
+            "模型看到的文本不都具有相同权威性。系统需要区分可信指令、用户内容、外部文档、网页、工具输出和历史记忆；将不可信内容作为数据传递，并保留可追溯来源。",
+            [
+              { id: "annotated-context-fragments", title: "Annotated Context Fragments", summary: "为上下文片段附加来源、类型和信任标记。", description: "将上下文拆成带 metadata 的片段，记录来源、时间、权限、信任级别和引用 ID；在序列化到 Prompt 时保留边界。", tags: ["Annotations", "Provenance"] },
+              { id: "untrusted-region-delimiters", title: "Untrusted Region Delimiters", summary: "明确标记网页、工具和外部文件中的不可信内容。", description: "使用结构化消息类型或明确边界包裹外部内容，告诉模型这些文本仅供分析，不能覆盖当前指令或触发未经授权的动作。", tags: ["Untrusted Input", "Prompt Injection"] },
+              { id: "citation-linked-context", title: "Citation-linked Context", summary: "让生成结论可以回溯到具体上下文片段。", description: "为检索片段和历史记录分配稳定引用 ID，生成时保留结论与证据之间的关联；回答前检查引用是否真实支持对应结论。", tags: ["Citation", "Evidence"] }
+            ],
+            ["Provenance", "Trust Boundary", "Citation"]
+          ),
         ]
       ),
       moduleNode(
@@ -955,7 +1297,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "capability-router", title: "Capability-based Router", summary: "按推理、视觉、长上下文等能力路由。", description: "维护模型能力目录，根据任务标签和输入模态选择满足约束的模型。", tags: ["Routing", "Capabilities"] },
               { id: "cost-latency-router", title: "Cost / Latency Router", summary: "按预算和响应时间选择模型。", description: "根据 Token 价格、历史延迟、速率限制和任务优先级选择模型，必要时降级。", tags: ["Cost", "Latency"] },
-              { id: "fallback-chain", title: "Fallback Chain", summary: "主模型不可用时切换备用模型。", description: "配置主备模型、错误分类、熔断和重试，确保回退模型满足基本能力和安全要求。", tags: ["Fallback", "Circuit Breaker"] }
+              { id: "fallback-chain", title: "Fallback Chain", summary: "主模型不可用时切换备用模型。", description: "配置主备模型、错误分类、熔断和重试，确保回退模型满足基本能力和安全要求。", tags: ["Fallback", "Circuit Breaker"] },
+              { id: "codex-provider-catalog-example", title: "Codex · Provider & Model Catalog", summary: "通过 Provider 抽象、模型目录和认证适配接入不同模型供应商。", description: "Codex 将 Provider、模型能力、模型目录、认证和请求准备拆分为独立模块；具体可用模型和特性由 Provider 能力信息决定，而不是仅靠模型名称推断。", tags: ["Codex", "Provider Adapter", "Model Catalog"], resources: [{ label: "Codex Model Provider", url: "https://github.com/openai/codex/tree/main/codex-rs/model-provider/src" }] }
             ],
             ["Routing", "Fallback", "Cost"]
           ),
@@ -983,6 +1326,49 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Streaming", "Audio", "Multimodal"]
           )
+
+          capability(
+            "inference-serving",
+            "模型推理服务 Inference Serving",
+            "将模型权重部署为可被 Agent 调用的在线或本地推理服务。",
+            "模型运行时不仅是 API Adapter，还包括模型加载、GPU/CPU 调度、批处理、并发、显存管理、流式生成和服务健康。部署形态可为托管 API、本地进程或集群推理服务。",
+            [
+              { id: "hosted-model-api", title: "Hosted Model API", summary: "通过云端供应商 API 调用托管模型。", description: "使用云端模型 API 管理认证、速率限制、区域、服务等级和请求重试；适合不希望自行管理模型权重和 GPU 的 Agent。", tags: ["Hosted API", "Cloud Inference"] },
+              { id: "vllm-serving", title: "vLLM / PagedAttention", summary: "通过高吞吐 GPU 推理引擎部署开源模型。", description: "vLLM 使用 PagedAttention 管理 KV Cache，并支持连续批处理和 OpenAI-compatible Server；适合多请求并发的模型服务。", tags: ["vLLM", "PagedAttention", "GPU"] },
+              { id: "sglang-tgi-serving", title: "SGLang / Text Generation Inference", summary: "使用专用推理服务器管理请求调度和生成。", description: "SGLang、TGI 等推理服务提供模型加载、批处理、流式输出和硬件优化；需根据模型架构、并发模式和部署平台选择。", tags: ["SGLang", "TGI", "Serving"] },
+              { id: "local-model-runtime", title: "Ollama / llama.cpp / MLX", summary: "在本机或边缘设备运行量化模型。", description: "使用 Ollama、llama.cpp 或 MLX 在本地 CPU/GPU/Apple Silicon 上加载模型，适合隐私、离线或开发场景；需权衡模型尺寸、速度和能力。", tags: ["Ollama", "llama.cpp", "MLX", "Local LLM"] },
+              { id: "multi-gpu-model-parallelism", title: "Tensor / Pipeline / Expert Parallelism", summary: "将大模型分布到多张 GPU 或多个计算节点。", description: "使用 Tensor Parallel、Pipeline Parallel 或 Expert Parallel 拆分模型计算与权重，处理显存容量和吞吐扩展；需要考虑通信开销和故障恢复。", tags: ["Tensor Parallel", "Pipeline Parallel", "MoE"] }
+            ],
+            ["Inference", "vLLM", "SGLang", "TGI", "Local Runtime"]
+          ),
+          capability(
+            "inference-optimization",
+            "推理性能优化 Inference Optimization",
+            "降低 Token 延迟、显存占用和单位请求成本。",
+            "推理性能由模型大小、KV Cache、批处理、解码策略、量化和硬件共同决定。优化时应同时衡量首 Token 延迟、每 Token 延迟、吞吐、质量和显存。",
+            [
+              { id: "continuous-batching", title: "Continuous / Dynamic Batching", summary: "动态合并并发请求以提高 GPU 利用率。", description: "在生成过程中动态加入和移出请求，减少静态批处理的空闲；需要控制排队延迟和长短请求之间的公平性。", tags: ["Continuous Batching", "Throughput"] },
+              { id: "kv-cache-paged-attention", title: "KV Cache / PagedAttention", summary: "缓存历史 Key / Value 并降低重复计算。", description: "在自回归生成中复用历史 KV 状态；通过分页管理减少显存碎片，并在会话隔离和缓存淘汰上设置边界。", tags: ["KV Cache", "PagedAttention"] },
+              { id: "model-quantization", title: "Quantization · INT8 / INT4 / FP8", summary: "使用低精度权重和计算降低模型资源需求。", description: "通过权重量化、激活量化或 KV Cache 量化降低显存和带宽；需要在目标任务上评估精度损失、算子支持和量化校准。", tags: ["INT8", "INT4", "FP8", "Quantization"] },
+              { id: "speculative-decoding", title: "Speculative Decoding", summary: "用小模型提出候选 Token，再由大模型并行验证。", description: "通过 Draft Model 或辅助预测头生成候选 Token，由目标模型验证并接受部分候选；收益取决于候选接受率和模型组合。", tags: ["Speculative Decoding", "Draft Model"] },
+              { id: "prefix-prompt-caching", title: "Prefix / Prompt Cache", summary: "复用重复的系统提示和上下文前缀。", description: "缓存稳定 Prompt 前缀的计算结果，减少重复 Prefill 成本；必须考虑缓存键、租户隔离、过期策略和敏感数据风险。", tags: ["Prompt Cache", "Prefix Cache"] }
+            ],
+            ["Batching", "KV Cache", "Quantization", "Speculative Decoding"]
+          ),
+          capability(
+            "model-adaptation-decoding",
+            "模型适配与生成控制 Model Adaptation & Decoding",
+            "通过模型适配、解码参数和受约束生成满足不同 Agent 任务。",
+            "模型选择之外，还可以调整模型行为和输出空间。应区分改变模型权重的适配技术、改变采样过程的解码策略，以及约束输出格式的解码机制。",
+            [
+              { id: "lora-peft-finetuning", title: "Fine-tuning / LoRA / PEFT", summary: "使用领域数据适配模型权重或低秩参数。", description: "通过监督微调、LoRA 或 PEFT 学习特定任务格式和领域行为；需要高质量数据、训练评估、版本治理和回滚。", tags: ["Fine-tuning", "LoRA", "PEFT"] },
+              { id: "distillation-model-adaptation", title: "Knowledge Distillation", summary: "将较大模型的能力迁移到更小模型。", description: "使用教师模型输出、轨迹或偏好数据训练学生模型，降低部署成本；应验证学生模型在关键任务和安全场景中的能力保持。", tags: ["Distillation", "Student Model"] },
+              { id: "sampling-decoding-controls", title: "Sampling · Temperature / Top-p / Top-k", summary: "控制 Token 采样的随机性和候选范围。", description: "通过 Temperature、Top-p、Top-k 和重复惩罚调整生成多样性；事实抽取和结构化任务通常需要更稳定的解码配置。", tags: ["Temperature", "Top-p", "Top-k"] },
+              { id: "constrained-decoding-grammar", title: "Constrained Decoding / Grammar", summary: "限制模型只能生成满足语法或 Schema 的输出。", description: "使用 JSON Schema、CFG 或有限状态机约束 Token 生成，使输出符合工具参数或业务格式；仍需独立验证语义正确性和权限。", tags: ["Constrained Decoding", "Grammar", "JSON Schema"] },
+              { id: "tool-call-protocol-parser", title: "Tool-call Protocol Parser", summary: "解析模型的工具调用、参数和流式增量。", description: "将模型协议中的 Tool Call、Arguments Delta 和结束状态转换为内部调用对象；处理不完整 JSON、重复调用 ID 和协议版本差异。", tags: ["Tool Calling", "Protocol Parser", "Streaming"] }
+            ],
+            ["Fine-tuning", "LoRA", "Decoding", "Constrained Output"]
+          ),
         ]
       ),
       moduleNode(
@@ -1042,6 +1428,59 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["CI", "Canary", "Replay"]
           )
+
+          capability(
+            "agent-trajectory-evaluation",
+            "Agent 轨迹与过程评估 Agent Trajectory Evaluation",
+            "评估 Agent 每一步决策、工具选择和状态转移是否合理。",
+            "只看最终答案无法判断 Agent 是否使用了错误工具、执行了多余步骤或造成不必要副作用。轨迹评估应关联计划、模型响应、工具调用、工具结果和最终环境状态。",
+            [
+              { id: "tool-selection-evaluation", title: "Tool Selection / Argument Evaluation", summary: "评估工具选择是否正确、参数是否完整。", description: "根据任务目标和可用工具集，检查调用的工具、参数、调用顺序和权限边界；使用人工标注、规则或 LLM Judge 评分。", tags: ["Tool Use", "Arguments", "Tool Accuracy"] },
+              { id: "trajectory-step-evaluation", title: "Trajectory / Step-level Evaluation", summary: "对 Agent 的中间步骤和行动轨迹逐步评分。", description: "将执行轨迹拆成计划、推理摘要、工具行动、观察和状态变化，识别无效循环、遗漏步骤、错误假设和过度调用。", tags: ["Trajectory", "Step-level Eval"] },
+              { id: "environment-state-evaluation", title: "Environment State / Outcome Verification", summary: "通过外部状态确认任务是否真正完成。", description: "检查文件、数据库、网页、工单或业务系统的最终状态，而不是只依赖 Agent 自述成功；对部分完成和副作用定义明确判定。", tags: ["Outcome", "State Verification"] },
+              { id: "plan-quality-evaluation", title: "Plan Quality / Efficiency Evaluation", summary: "评估计划的可行性、覆盖率和执行成本。", description: "衡量计划是否满足约束、是否存在依赖遗漏、是否选择了合理并行度，以及是否以更低工具和 Token 成本达到相同结果。", tags: ["Planning", "Efficiency"] }
+            ],
+            ["Trajectory", "Tool Use", "Outcome", "Plan Quality"]
+          ),
+          capability(
+            "rag-evaluation",
+            "检索与知识质量评估 RAG Evaluation",
+            "分别评估检索召回质量、证据质量和答案忠实度。",
+            "RAG 评估需要将检索器和生成器分开测量。检索结果正确不代表答案忠实，答案看似合理也不代表引用证据支持结论。",
+            [
+              { id: "retrieval-recall-precision", title: "Recall@k / Precision@k / MRR / nDCG", summary: "衡量相关文档是否被召回以及排序是否合理。", description: "使用标注 Query-Document 对评估 Recall@k、Precision@k、MRR 和 nDCG；按 Query 类型和语料分层，定位召回和排序问题。", tags: ["Recall@k", "MRR", "nDCG"] },
+              { id: "rag-faithfulness-groundedness", title: "Faithfulness / Groundedness", summary: "检查答案是否由检索证据支持。", description: "将答案拆成原子声明，检查每条声明是否被上下文蕴含；区分无证据陈述、证据矛盾和合理推断。", tags: ["Faithfulness", "Groundedness"] },
+              { id: "rag-context-relevance", title: "Context Precision / Context Recall", summary: "衡量提供给生成模型的上下文是否相关且充分。", description: "检查检索上下文是否包含回答问题所需的证据，以及无关片段占比；用于比较 Chunking、Query Rewrite 和 Reranker 配置。", tags: ["Context Precision", "Context Recall"] },
+              { id: "citation-correctness-eval", title: "Citation Correctness / Coverage", summary: "评估引用是否真实存在并覆盖答案关键结论。", description: "验证引用标识、来源范围和内容匹配，测量关键声明的引用覆盖率；对错误引用、过宽引用和无关引用分别计分。", tags: ["Citation", "Attribution", "Coverage"] }
+            ],
+            ["Recall", "MRR", "Faithfulness", "Citation"]
+          ),
+          capability(
+            "safety-redteam-evaluation",
+            "安全评估与红队测试 Safety Evals & Red Teaming",
+            "系统性测试 Agent 在恶意输入和高风险环境下的行为。",
+            "安全评估应覆盖模型、上下文、工具、记忆、插件和外部环境。测试集需要包含攻击成功与失败样本，并检查实际副作用和数据泄露，而不只判断文本是否拒绝。",
+            [
+              { id: "prompt-injection-redteam", title: "Prompt Injection / Indirect Injection Tests", summary: "测试网页、文档和工具结果中的间接提示注入。", description: "在检索文档、网页、邮件和工具输出中嵌入恶意指令，检查 Agent 是否越权调用工具或泄露上下文；覆盖多轮和多 Agent 传播路径。", tags: ["Prompt Injection", "Indirect Injection"] },
+              { id: "tool-abuse-evaluation", title: "Tool Abuse / Destructive Action Tests", summary: "测试工具越权、重复执行和危险副作用。", description: "构造删除、发送、支付、部署和权限变更场景，验证审批、参数边界、幂等、取消和后置状态检查。", tags: ["Tool Abuse", "Destructive Actions"] },
+              { id: "data-exfiltration-evaluation", title: "Data Exfiltration / Privacy Tests", summary: "测试敏感数据是否会通过回答或工具外传。", description: "构造跨用户数据、秘密文件、提示词和凭证泄露场景，检查模型输出、日志、记忆、第三方工具和网络请求。", tags: ["Data Leakage", "Privacy", "Secrets"] },
+              { id: "jailbreak-adversarial-eval", title: "Jailbreak / Adversarial Robustness", summary: "测试对抗性输入和越狱提示下的策略稳定性。", description: "使用变体提示、编码混淆、多语言攻击和多轮诱导评估策略鲁棒性；记录攻击路径、成功条件和修复回归用例。", tags: ["Jailbreak", "Adversarial", "Red Team"] }
+            ],
+            ["Red Team", "Prompt Injection", "Tool Abuse", "Privacy"]
+          ),
+          capability(
+            "online-evaluation-feedback",
+            "在线评估与用户反馈 Online Evaluation",
+            "通过真实流量、用户反馈和版本实验持续监控 Agent 质量。",
+            "离线基准无法覆盖真实用户分布和外部系统变化。在线评估应采用灰度、对照实验、用户反馈和漂移监测，并在质量或安全指标退化时触发回滚。",
+            [
+              { id: "human-review-feedback", title: "Human Review / User Feedback", summary: "采集人工审核、用户纠正和任务采纳情况。", description: "将点赞、纠正、重试、人工接管和最终采纳等信号关联到任务轨迹；区分主观满意度与客观任务成功。", tags: ["Human Review", "User Feedback"] },
+              { id: "online-shadow-evaluation", title: "Shadow / Online Evaluation", summary: "在真实请求上并行评估候选版本而不影响用户结果。", description: "将脱敏流量复制到候选模型或 Prompt，比较输出质量、延迟和成本；限制副作用，候选版本不能执行真实写操作。", tags: ["Shadow", "Online Eval"] },
+              { id: "quality-drift-monitoring", title: "Quality Drift / Data Drift Monitoring", summary: "发现模型、用户任务和外部环境变化导致的质量退化。", description: "按任务类别、模型版本和工具环境监控指标分布；使用基线比较和阈值告警触发复评、回滚或数据集更新。", tags: ["Drift", "Monitoring", "Alerting"] },
+              { id: "release-gate-rollback", title: "Quality Gate / Automatic Rollback", summary: "将质量和安全指标设为发布门槛。", description: "为成功率、事实性、安全事件、成本和延迟设置门槛；灰度期间超限时停止放量或回滚到已验证版本。", tags: ["Release Gate", "Rollback", "Canary"] }
+            ],
+            ["Online Eval", "Feedback", "Drift", "Release Gate"]
+          ),
         ]
       ),
       moduleNode(
@@ -1103,6 +1542,49 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Rate Limit", "Budget", "Audit"]
           )
+
+          capability(
+            "agent-threat-modeling",
+            "Agent 威胁建模 Agent Threat Modeling",
+            "识别 Agent 在输入、推理、工具、记忆和外部执行中的攻击面。",
+            "Agent 的攻击面跨越自然语言、模型上下文、插件、工具和真实环境。威胁建模应覆盖直接与间接提示注入、工具参数操纵、记忆投毒、数据外传、越权执行和资源耗尽。",
+            [
+              { id: "indirect-prompt-injection", title: "Indirect Prompt Injection", summary: "防御网页、邮件、文档和工具结果中的恶意指令。", description: "将外部内容视为不可信数据，使用来源标记、工具白名单和执行前策略检查；测试恶意指令是否能改变工具参数或泄露系统上下文。", tags: ["Indirect Injection", "Untrusted Content"] },
+              { id: "memory-poisoning-defense", title: "Memory / RAG Poisoning Defense", summary: "防止恶意或错误内容进入长期记忆和知识索引。", description: "记录来源、写入主体和证据，限制自动写入范围，识别相互矛盾和异常高影响内容，并提供纠正、删除和来源审计。", tags: ["Memory Poisoning", "RAG Poisoning"] },
+              { id: "tool-output-injection-defense", title: "Tool Output Injection Defense", summary: "防止工具返回内容诱导 Agent 执行未经授权的操作。", description: "对工具结果设置不可信边界；模型提出后续动作时重新执行参数验证、权限检查和人工审批，不继承工具内容中的授权声明。", tags: ["Tool Output", "Trust Boundary"] },
+              { id: "ssrf-data-exfiltration-defense", title: "SSRF / Data Exfiltration Defense", summary: "限制 Agent 通过 URL、文件和工具接口访问内部资源或外传数据。", description: "对目标域名、IP 段、重定向、DNS 解析、文件路径和网络出口执行可信服务端校验；禁止模型自由构造可访问内网的请求。", tags: ["SSRF", "Egress Control", "Exfiltration"] },
+              { id: "agent-resource-exhaustion", title: "Runaway Agent / Resource Exhaustion", summary: "防止无限循环、递归委派和资源消耗失控。", description: "设置任务时长、模型调用、Token、工具调用、并发和委派深度预算；通过循环检测、熔断和取消传播限制失控执行。", tags: ["Runaway Agent", "Resource Limits"] }
+            ],
+            ["Threat Modeling", "Injection", "Poisoning", "Exfiltration", "Resource Abuse"]
+          ),
+          capability(
+            "tool-supply-chain-security",
+            "工具与插件供应链安全 Tool / Plugin Supply Chain",
+            "验证外部工具、MCP Server、Skill 和插件的来源与运行权限。",
+            "Agent 扩展可能携带可执行脚本、网络访问和文件权限。安全模型应覆盖发现、安装、升级、运行和卸载全生命周期，并确保能力声明与实际权限一致。",
+            [
+              { id: "extension-source-trust", title: "Extension Source / Publisher Trust", summary: "验证插件、Skill 和 MCP Server 的发布来源。", description: "维护可信发布者、仓库和注册表来源；对来源不明、名称相似或被替换的扩展执行警告和人工审核。", tags: ["Publisher Trust", "Registry"] },
+              { id: "dependency-sbom-scanning", title: "Dependency Scan / SBOM", summary: "扫描扩展依赖和已知漏洞。", description: "生成软件物料清单，扫描依赖漏洞、恶意包和许可证风险；对构建产物绑定版本与哈希，支持持续复查。", tags: ["SBOM", "SCA", "Vulnerability Scan"] },
+              { id: "plugin-signature-integrity", title: "Artifact Signing / Integrity Verification", summary: "验证插件和工具制品未被篡改。", description: "通过签名、哈希和可信发布流水线验证安装包与脚本完整性；升级时重新验证来源、权限变化和依赖差异。", tags: ["Code Signing", "Integrity"] },
+              { id: "capability-permission-review", title: "Capability Manifest / Permission Review", summary: "在安装和运行前审核扩展请求的权限。", description: "对文件、网络、Shell、账户和数据访问权限做最小授权；权限扩大或发布者变化时要求重新审核。", tags: ["Capability Manifest", "Least Privilege"] },
+              { id: "extension-isolation", title: "Extension Isolation / Revocation", summary: "隔离第三方扩展并支持快速停用和撤销。", description: "在独立进程、容器或受限运行时执行扩展，限制凭证传递和网络出口；发现异常时撤销令牌、禁用扩展并保留审计证据。", tags: ["Isolation", "Revocation"] }
+            ],
+            ["Supply Chain", "SBOM", "Signing", "Permissions", "Isolation"]
+          ),
+          capability(
+            "data-governance-compliance",
+            "数据治理与合规 Data Governance",
+            "管理 Agent 数据的分类、访问、地域、保留和删除要求。",
+            "Agent 会处理用户内容、企业数据、凭证和模型生成的派生数据。治理策略必须覆盖原始输入、上下文、记忆、索引、日志、缓存和备份，确保数据用途与保留范围可审计。",
+            [
+              { id: "data-classification-labeling", title: "Data Classification / Labeling", summary: "按敏感级别和业务用途标记数据。", description: "定义公开、内部、机密和受监管数据分类，为每个来源和派生片段附加标签；下游模型、工具和存储策略根据标签执行。", tags: ["Classification", "Data Labels"] },
+              { id: "data-residency-boundary", title: "Data Residency / Processing Boundary", summary: "控制数据存储和模型处理的地域范围。", description: "根据用户、租户和法规要求约束数据所在区域、模型供应商和日志出口；跨区域传输需要明确授权和审计。", tags: ["Data Residency", "Regional Processing"] },
+              { id: "consent-purpose-limitation", title: "Consent / Purpose Limitation", summary: "确保数据采集和二次使用符合用户授权目的。", description: "记录用户同意范围、数据用途和撤回状态；禁止将仅用于当前任务的数据自动用于长期记忆、训练或无关分析。", tags: ["Consent", "Purpose Limitation"] },
+              { id: "derived-data-deletion", title: "Derived Data / Backup Deletion", summary: "将删除要求传播到摘要、索引、缓存和备份。", description: "建立数据血缘和派生关系，删除原始记录时同步处理摘要、向量、搜索索引、缓存和备份；记录完成状态和不可立即删除的例外。", tags: ["Data Lineage", "Deletion", "Backups"] },
+              { id: "audit-retention-governance", title: "Audit / Retention Governance", summary: "定义可审计日志和不同数据类型的保留期限。", description: "为安全事件、工具副作用、审批和模型调用定义审计字段与保留周期；日志本身也应脱敏、访问控制和防篡改。", tags: ["Audit", "Retention", "Compliance"] }
+            ],
+            ["Classification", "Residency", "Consent", "Deletion", "Audit"]
+          ),
         ]
       )
     ]
