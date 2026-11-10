@@ -1,6 +1,15 @@
 # Agent Development Knowledge Map
 
-一个面向 Agent 开发者的交互式知识图谱：以从左到右的树状结构，梳理从基础概念、模型与提示工程，到 Agent 架构、工具调用、记忆检索、评估、安全与部署的完整知识路径。
+一个面向 Agent 开发者的交互式知识图谱。使用从左到右的四级结构，将 Agent 系统拆解为功能模块、模块能力和具体技术实现。
+
+## 知识结构
+
+1. **一级：Agent 系统** — 整体系统入口。
+2. **二级：Agent 模块** — Perception、Reasoning、Memory、Knowledge / RAG、Tools、Orchestration、Context、Model Runtime、Evaluation、Security。
+3. **三级：模块能力** — 例如 Memory Extraction、Memory Storage、Memory Retrieval、Memory Lifecycle。
+4. **四级：技术实现** — 例如 LLM Structured Extraction、NER、Redis、PostgreSQL、Vector Search、BM25、Reranker。
+
+点击模块或能力节点旁的展开按钮，可以逐层查看下级内容；点击节点可查看职责说明、关键知识点、关键词和参考资料。
 
 ## 技术栈
 
@@ -29,15 +38,6 @@ npm run preview
 
 在 GitHub 仓库的 **Settings → Pages → Build and deployment** 中，将 Source 设置为 **GitHub Actions**。推送到 `main` 后，工作流会自动发布站点。
 
-## 内容结构
+## 扩展知识
 
-- Agent 基础与核心概念
-- 模型能力与提示工程
-- Agent 架构与推理模式
-- 工具调用与外部系统
-- 知识检索与记忆
-- 工作流编排与多 Agent 协作
-- 评估、可观测性与质量
-- 安全、部署与工程实践
-
-知识内容集中维护在 `src/data/knowledge.ts`，可以直接通过数据结构扩展节点。
+知识内容集中维护在 `src/data/knowledge.ts`。树结构使用递归数据模型，新增模块、能力或技术实现时，按四级结构添加 `KnowledgeItem` 即可。
