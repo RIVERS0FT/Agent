@@ -64,7 +64,7 @@ export default function App() {
       fitView({ padding: 0.2, duration: 320, minZoom: 0.15, maxZoom: 1.2 });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [graph.nodes.length, query, fitView]);
+  }, [query, fitView]);
 
   const handleSearch = (value: string) => {
     setQuery(value);
