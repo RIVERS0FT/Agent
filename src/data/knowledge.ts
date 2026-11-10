@@ -198,10 +198,70 @@ export const knowledgeTree: KnowledgeItem = node(
         "memory",
         "记忆 Memory",
         "提取、存储、检索、更新和遗忘 Agent 运行过程中有价值的信息。",
-        "Memory 负责跨轮次保留与未来任务相关的信息。它与 RAG 知识库不同：记忆更关注用户、会话、任务经历和动态状态；需要管理写入质量、检索相关性、冲突解决、时效性和删除权。",
+        "Memory 是跨轮次状态与经验管理子系统，不限定某种数据库或单一产品实现。通用链路覆盖来源采集、触发调度、提取与表示、存储、检索与上下文注入、整合更新、生命周期、使用反馈和安全治理。不同 Agent 可以选择不同组合；产品案例应映射到这些通用能力，而不是替代通用技术分类。它与 RAG 知识库不同：Memory 更关注用户、会话、任务经历和动态状态。",
         "#D66E91",
         ["Memory", "Episodic", "Semantic", "Lifecycle"],
         [
+          capability(
+            "memory-capture",
+            "记忆来源与采集 Memory Capture & Ingestion",
+            "从会话、任务轨迹、工具结果和外部事件中收集可形成记忆的原始证据。",
+            "记忆系统首先要定义可采集的数据源和采集边界。不同 Agent 可能读取完整对话、压缩后的任务轨迹、工具调用事件、用户明确反馈或外部系统状态；采集时应保留时间、来源、会话、项目和权限元数据，并过滤无关或不可信内容。",
+            [
+              { id: "conversation-transcript-capture", title: "Conversation Transcript / Message Log", summary: "从用户与 Agent 的消息历史采集对话证据。", description: "将 user、assistant、tool 等消息按轮次保存，保留时间戳、消息角色、附件引用和工具结果；可使用数据库记录、JSONL 或平台会话日志作为来源。", tags: ["Transcript", "Message Log"] },
+              { id: "agent-rollout-jsonl", title: "Agent Rollout / Execution Trace · JSONL", summary: "把任务过程、工具调用和结果作为可回放的事件轨迹。", description: "将会话元数据、模型响应、工具调用、工具结果和 Agent 间消息写成逐行 JSON 事件；适合按时间扫描、筛选证据和按任务重建上下文。", tags: ["Rollout", "JSONL", "Execution Trace"] },
+              { id: "tool-event-capture", title: "Tool Result / Event Capture", summary: "采集工具结果、业务事件和环境状态变化。", description: "通过工具执行回调、Webhook、消息队列或事件总线记录外部动作与结果；保留调用参数摘要、返回状态、发生时间和来源标识，避免只记住模型的口头描述。", tags: ["Tool Events", "Webhook", "Event Bus"] },
+              { id: "external-memory-source-adapter", title: "External Source Adapter", summary: "从 Issue、文档、代码仓库和业务系统补充外部事实。", description: "使用 API、MCP Connector 或文件适配器接入外部来源；记录原始 URL、资源 ID、权限范围和更新时间，并区分外部事实与模型推断。", tags: ["API", "MCP", "Connectors"] },
+              {
+                id: "codex-rollout-evidence-reader",
+                title: "Codex · Rollout JSONL Reader",
+                summary: "反向扫描历史 Rollout，筛选脱敏证据并按原始时间顺序恢复。",
+                description: "Codex v2 使用 ReverseJsonlScanner 从 rollout JSONL 读取历史响应与 Agent 间通信，限制单条记录和总输入字节数，跳过无关记录并对响应内容做脱敏；先从较新的证据中按层级选择，再恢复源时间顺序交给提取 Prompt。",
+                points: [
+                  "读取器校验首行 SessionMeta，并限制最大记录大小；不把完整 Rollout 当作可无限输入的原始文本。",
+                  "选择人类消息、最终响应、其他 Agent 消息、评论、上下文和工具结果等不同证据层级。",
+                  "图像等媒体内容会被替换为占位信息；较旧或超预算的记录可能被省略，因此提取输入不等于完整可恢复 Transcript。",
+                  "保留 rollout_path、cwd、git_branch 等任务上下文提示，但要求模型根据具体任务证据判断归属。"
+                ],
+                tags: ["Codex", "Reverse JSONL Scanner", "Evidence Filtering"],
+                resources: [
+                  { label: "Codex Rollout Input 实现", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/rollout_input.rs" }
+                ]
+              }
+            ],
+            ["Capture", "Transcript", "Rollout", "Events", "Provenance"]
+          ),
+          capability(
+            "memory-trigger-scheduling",
+            "写入触发与调度 Memory Trigger & Scheduling",
+            "决定何时启动记忆提取，以及如何安全地调度后台记忆任务。",
+            "记忆写入可以发生在每轮结束、会话结束、用户显式请求、空闲窗口或定时后台任务。触发策略会影响延迟、成本和记忆完整性；后台执行还需要候选筛选、任务领取、租约、并发限制、重试和幂等控制。",
+            [
+              { id: "turn-end-memory-trigger", title: "Turn / Session-end Trigger", summary: "在一轮对话或会话结束时触发记忆写入。", description: "由消息完成事件、会话关闭回调或显式工具调用启动提取；实现简单且延迟低，但需要避免把短暂对话和未完成任务过早固化。", tags: ["Event Trigger", "Session End"] },
+              { id: "idle-time-memory-scheduler", title: "Idle-time Background Scheduler", summary: "等待任务进入空闲窗口后再异步提取记忆。", description: "使用启动钩子、Cron 或后台调度器筛选已静默一段时间的会话，避开仍在执行的任务；适合将记忆生成从用户请求路径中解耦。", tags: ["Background Job", "Idle Window", "Scheduler"] },
+              { id: "memory-job-lease", title: "Job Claim / Lease / Idempotency", summary: "通过数据库任务记录和租约避免重复处理。", description: "将候选任务写入 jobs 表或可靠队列，使用 ownership token、lease expiry 和幂等键标识任务所有权；并发 Worker 只能领取未被占用的任务。", tags: ["Job Queue", "Lease", "Idempotency"] },
+              { id: "memory-job-retry-concurrency", title: "Retry / Backoff / Concurrency Limit", summary: "控制失败重试、并行提取数量和资源消耗。", description: "为失败任务记录重试次数和下次可运行时间，采用指数退避或固定退避；通过并发上限、批次大小、Token 预算和模型额度门槛控制后台负载。", tags: ["Retry", "Backoff", "Concurrency", "Rate Limit"] },
+              {
+                id: "codex-memory-startup-scheduler",
+                title: "Codex · Startup-triggered Memory Pipeline",
+                summary: "根会话启动时异步执行 Phase 1 和 Phase 2，而不是每轮对话立即写入。",
+                description: "Codex 在符合条件的根会话启动时触发后台流水线。Phase 1 从 State DB 领取符合来源、年龄和空闲条件的历史线程并并行提取；Phase 2 使用全局任务租约与文件锁串行整合。当前开源配置默认最小空闲时间为 6 小时、最大 Rollout 年龄为 10 天、每次启动最多处理 2 个候选线程；均可配置。",
+                points: [
+                  "跳过 ephemeral 会话、sub-agent 会话、当前会话，以及记忆功能未启用或 State DB 不可用的情况。",
+                  "候选任务由 SQLite 状态层领取，使用租约防止重复工作；失败任务有退避重试。",
+                  "Phase 1 的逐线程提取可并行运行；Phase 2 对共享 Memory Workspace 使用全局锁，避免多个整合 Agent 同时写入。",
+                  "6 小时、10 天和每次 2 个是当前源码中的默认值，不是所有 Codex 版本或用户配置的固定常量。"
+                ],
+                tags: ["Codex", "Async Pipeline", "Phase 1", "Phase 2"],
+                resources: [
+                  { label: "Codex Memory Pipeline", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/README.md" },
+                  { label: "Codex Phase 1 Scheduler", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/phase1.rs" },
+                  { label: "Codex Memory Configuration", url: "https://github.com/openai/codex/blob/main/codex-rs/config/src/types.rs" }
+                ]
+              }
+            ],
+            ["Trigger", "Scheduling", "Async Jobs", "Lease", "Retry"]
+          ),
           capability(
             "memory-extraction",
             "记忆提取 Memory Extraction",
@@ -212,6 +272,10 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "memory-ner", title: "Entity Extraction / NER", summary: "识别人名、组织、项目和实体关系。", description: "使用 NER、实体链接和规范化规则识别实体，将不同称呼映射到统一 ID，并保留原始文本证据。", tags: ["NER", "Entity Linking"] },
               { id: "event-extraction", title: "Event Extraction", summary: "抽取事件、参与者、时间和结果。", description: "将任务经历表示为事件记录，包含主体、动作、对象、时间、结果和上下文，支持后续情节记忆检索。", tags: ["Event", "Episodic Memory"] },
               { id: "preference-extraction", title: "Preference Extraction", summary: "识别稳定偏好、习惯和用户明确要求。", description: "区分明确表达与模型推断，记录偏好适用范围、置信度和最后确认时间，并提供用户纠正入口。", tags: ["User Preference", "Profile"] },
+              { id: "rule-based-memory-extraction", title: "Rule-based / Heuristic Extraction", summary: "用确定性规则捕获明确、格式稳定的记忆事件。", description: "通过正则、事件类型、命令或显式用户标记提取固定字段；适合提取明确的记住/忘记请求、项目标识和结构化事件，可与 LLM 抽取互补。", tags: ["Rules", "Heuristics", "Explicit Memory"] },
+              { id: "task-boundary-extraction", title: "Task Boundary & Outcome Extraction", summary: "识别任务起止、目标变化、关键决策和最终结果。", description: "从长会话中划分多个任务片段，保留每个任务的目标、范围、工作目录、分支、操作、结果和未完成事项，避免将整个会话压缩成一段无边界摘要。", tags: ["Task Boundary", "Outcome", "Chronology"] },
+              { id: "memory-source-attribution", title: "Source Attribution / Evidence Extraction", summary: "为每条记忆保留来自用户、工具或模型的证据来源。", description: "记录原始消息、工具输出、文件路径、时间和会话 ID；区分用户明确陈述、工具验证事实、Agent 建议与未验证推断，供后续冲突解决和引用使用。", tags: ["Provenance", "Evidence", "Confidence"] },
+              { id: "memory-secret-redaction", title: "Secret / PII Redaction", summary: "在记忆落库前识别并移除密钥和敏感字段。", description: "对模型生成的记忆和原始输入执行 Secret、PII 检测与脱敏；应在写入数据库、Markdown、日志和检索索引之前处理，并保留必要的脱敏审计信息。", tags: ["Secret Redaction", "PII", "DLP"] },
               {
                 id: "claude-memory-extraction",
                 title: "Claude Code · Auto Memory",
@@ -235,8 +299,8 @@ export const knowledgeTree: KnowledgeItem = node(
                 description: "Codex Local Memories 默认关闭；启用后，Codex 在后台异步筛选历史 rollout，而不是在每轮对话结束时立即写入。候选线程需满足来源、年龄和空闲时间条件，并通过批次、领取状态及速率限制检查。模型读取过滤后的对话并生成结构化记忆；没有长期价值时允许返回空结果，生成字段会进行 Secret Redaction。外部工具或网页上下文是否允许参与提取，还可由配置控制。",
                 points: [
                   "Phase 1 先从 State DB 领取候选线程，再按并发上限并行提取；领取租约用于避免重复处理，失败任务使用退避重试。",
-                  "v1 输出 raw_memory、rollout_summary 和可选 rollout_slug；v2 改为更重视任务边界、用户原话、操作证据和结果状态的 task-first rollout_summary。",
-                  "跳过活跃或短期线程；空闲阈值、最大历史天数、每次启动处理量和提取模型均可配置，默认空闲阈值为 6 小时、最大历史年龄为 30 天。",
+                  "v1 输出 raw_memory、rollout_summary 和可选 rollout_slug；v2 只输出 rollout_summary 与 rollout_slug，改为 task-first 任务记录，重视用户原话、任务边界、操作证据和结果状态，而不是把原始记忆字段一并写入。",
+                  "跳过活跃或短期线程；空闲阈值、最大历史天数、每次启动处理量和提取模型均可配置。当前源码默认空闲阈值为 6 小时、最大历史年龄为 10 天、每次启动最多领取 2 个候选线程。",
                   "提取结果先写入 State DB，尚不是最终注入上下文的精简记忆；功能开关与每个会话的生成许可分别控制是否参与未来记忆生成。"
                 ],
                 tags: ["Codex", "Phase 1", "Rollout", "Secret Redaction"],
@@ -250,6 +314,36 @@ export const knowledgeTree: KnowledgeItem = node(
             ["Extraction", "NER", "Events", "Claude Code", "Codex"]
           ),
           capability(
+            "memory-representation",
+            "记忆表示与数据模型 Memory Representation",
+            "定义记忆的类型、字段、层级和证据关系，使不同 Agent 的记忆可以被理解与转换。",
+            "记忆提取结果不能只有一段无结构文本。通用记忆记录应描述内容、类型、主体、作用范围、来源、时间、置信度和状态；可按用户、项目、任务和事件组织，并同时保留精简摘要与可追溯证据。不同产品可以采用 JSON、Markdown、关系表或图结构表达同一语义。",
+            [
+              { id: "typed-memory-schema", title: "Typed Memory Schema", summary: "为记忆定义稳定字段和类型约束。", description: "设计 MemoryItem Schema，例如 id、content、memory_type、entities、scope、source、created_at、updated_at、confidence、status 和 expires_at；使用 JSON Schema、Pydantic 或类型系统验证。", tags: ["Memory Schema", "JSON Schema", "Typed Data"] },
+              { id: "memory-taxonomy", title: "Episodic / Semantic / Procedural / Profile Memory", summary: "按记忆内容和未来用途划分记忆类型。", description: "Episodic 记录发生过的任务和事件；Semantic 记录稳定事实与关系；Procedural 记录做事方法和可复用流程；Profile 记录用户偏好与长期背景。一个产品可以只实现其中一部分。", tags: ["Episodic", "Semantic", "Procedural", "Profile"] },
+              { id: "hierarchical-memory-representation", title: "Hierarchical / Multi-resolution Memory", summary: "将原始事件、任务摘要和长期摘要组织成不同粒度。", description: "保留原始对话或事件作为证据层，按任务生成中间摘要，再整合成跨任务的长期摘要；读取时先用粗粒度索引定位，再下钻到细粒度内容。", tags: ["Hierarchical Memory", "Summary", "Progressive Disclosure"] },
+              { id: "memory-provenance-model", title: "Memory Provenance & Evidence Links", summary: "保存记忆来源、时间线和可验证的证据指针。", description: "为记忆关联 source_id、thread_id、rollout_id、文件路径、行号、时间戳和证据类型；记忆摘要应能回到原始来源，避免把摘要误当作当前事实。", tags: ["Provenance", "Evidence", "Citation"] },
+              {
+                id: "codex-task-first-memory-record",
+                title: "Codex · Task-first Rollout Summary",
+                summary: "以任务为单位记录目标、决策、操作、结果和未完成事项。",
+                description: "Codex v2 的提取 Prompt 要求生成自包含 Markdown 任务记录，按时间顺序保留任务范围、用户纠正、工作目录与分支、关键发现、执行结果和未解决问题。它要求区分用户陈述与 Agent 推断，并避免把单次任务选择过度泛化成永久用户偏好。",
+                points: [
+                  "一个会话可能包含多个工作目录和分支，Rollout 级元数据只能作为提示，任务级归属需要根据证据判断。",
+                  "保留被中断、被替代或未完成的任务，明确记录动作来源和最终状态。",
+                  "仅在有证据支持时记录可复用偏好；普通 Agent 行为或单次任务决定不能自动变成用户画像。",
+                  "v2 输出 rollout_summary 与 rollout_slug，不再要求 v1 的 raw_memory 字段。"
+                ],
+                tags: ["Codex", "Task-first", "Chronology", "Provenance"],
+                resources: [
+                  { label: "Codex v2 Extraction Prompt", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/templates/memories/stage_one_system_v2.md" },
+                  { label: "Codex v2 Extraction Input", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/templates/memories/stage_one_input_v2.md" }
+                ]
+              }
+            ],
+            ["Schema", "Memory Types", "Hierarchy", "Provenance"]
+          ),
+          capability(
             "memory-storage",
             "记忆存储 Memory Storage",
             "根据记忆类型选择合适的数据结构和持久化介质。",
@@ -259,6 +353,11 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "relational-memory-store", title: "Relational Store · PostgreSQL", summary: "保存结构化事实、偏好和任务记录。", description: "使用 PostgreSQL 表、JSONB、索引和事务保存有明确字段与一致性要求的记忆，适合按用户、时间和类型过滤。", tags: ["PostgreSQL", "SQL", "JSONB"] },
               { id: "vector-memory-store", title: "Vector Store · pgvector / Qdrant", summary: "保存语义片段和 Embedding 向量。", description: "为记忆内容生成 Embedding，存储向量与 metadata，支持相似度检索、用户隔离、过滤和索引更新。", tags: ["pgvector", "Qdrant", "Embedding"] },
               { id: "graph-memory-store", title: "Graph Store · Neo4j", summary: "保存实体及其关系和多跳连接。", description: "将人物、项目、事件建模为节点，将参与、拥有、依赖等关系建模为边，适合关系查询、实体消歧和关联推理。", tags: ["Neo4j", "Knowledge Graph"] },
+              { id: "sqlite-memory-store", title: "Embedded Relational DB · SQLite", summary: "在本机进程或应用内保存结构化记忆和任务状态。", description: "使用 SQLite 保存结构化记录、索引、任务状态、租约和使用统计；无需独立数据库服务，适合桌面 Agent、CLI 和单机工作区。可将线程元数据与记忆提取状态放在不同数据库文件中。", tags: ["SQLite", "Embedded DB", "Local-first"] },
+              { id: "document-memory-store", title: "Document Store · MongoDB", summary: "以文档形式保存字段可变的记忆记录。", description: "将一条记忆作为 BSON / JSON 文档保存，适合字段结构经常变化、需要按用户和元数据过滤的应用；需要另外设计版本、关系查询和一致性策略。", tags: ["MongoDB", "Document DB", "JSON"] },
+              { id: "filesystem-memory-store", title: "Filesystem / Markdown Store", summary: "将记忆保存为可读、可编辑的本地文件。", description: "使用 Markdown、YAML 或纯文本文件组织索引、主题和任务摘要；优点是透明、可版本控制和易人工检查，缺点是并发写入、查询和结构化约束需要额外机制。", tags: ["Markdown", "Filesystem", "Human-readable"] },
+              { id: "jsonl-event-store", title: "Append-only Event Log · JSONL", summary: "按时间追加保存消息和执行事件。", description: "每行保存一个独立 JSON 事件，适合日志采集、时间线回放和增量扫描；通常作为原始证据层，仍需摘要、索引或数据库支持高效检索。", tags: ["JSONL", "Append-only", "Event Log"] },
+              { id: "object-memory-archive", title: "Object Storage · S3 / MinIO", summary: "归档大量历史轨迹、附件和低频证据文件。", description: "将大体积 Transcript、附件和归档记忆存入对象存储，通过对象键和元数据索引定位；适合低频历史证据，不宜直接替代需要事务更新的记忆状态库。", tags: ["S3", "MinIO", "Archive"] },
               {
                 id: "claude-memory-storage",
                 title: "Claude Code · Markdown Store",
@@ -279,10 +378,10 @@ export const knowledgeTree: KnowledgeItem = node(
                 id: "codex-memory-storage",
                 title: "Codex · Local Memory Store",
                 summary: "使用本地 State DB 和版本化文件工作区保存记忆。",
-                description: "Codex 将记忆保存在 CODEX_HOME 下。State DB 暂存逐线程提取结果和使用统计；Phase 2 将选中的 rollout 摘要同步到文件系统。v1 与 v2 的目录和产物不同：启用记忆时，新建 CLI home 默认使用 memories_v2；若已有 memories/ 目录，通常继续使用 v1，且 memories.version 与 memories.dual_write 可显式控制版本选择和迁移。",
+                description: "Codex 使用本地 SQLite + 文件系统，而不是单一 Markdown 文件。State DB（state_*.sqlite）保存线程和会话元数据；独立的 memories_1.sqlite 或 memories_v2_1.sqlite 保存逐线程提取结果、jobs、使用次数和最近使用时间。Phase 2 再把选中的 rollout 摘要同步到 CODEX_HOME 下的版本化文件工作区。新 profile 的 v2 默认行为受 memories.version 与 memories.dual_write 配置影响；已有 v1 工作区可能继续使用 v1。",
                 points: [
                   "v1 工作区包含 raw_memories.md、rollout_summaries/ 以及由整合 Agent 维护的 MEMORY.md、memory_summary.md 和可选 skills/。",
-                  "v2 更强调 memory_summary.md 作为启动摘要、rollout_summaries/ 作为证据和任务细节，以及 extensions/ad_hoc/notes/ 作为用户明确提出的记忆修改入口。",
+                  "v2 更强调 memory_summary.md 作为启动摘要、rollout_summaries/ 作为证据和任务细节，以及 extensions/ad_hoc/notes/ 作为用户明确提出的记忆修改入口；v2 的 State DB 仍独立保存提取任务与使用统计。",
                   "配置项 memories.version 和 memories.dual_write 控制版本选择与双写迁移；桌面端迁移期间可能同时读取旧目录并写入两个目录。memories.dual_write=false 时，新 profile 也可能保留 v1 默认行为。",
                   "这些文件是生成状态，适合检查和排障，不建议把手工编辑生成文件作为主要记忆控制方式。"
                 ],
@@ -294,7 +393,7 @@ export const knowledgeTree: KnowledgeItem = node(
                 ]
               }
             ],
-            ["Redis", "PostgreSQL", "Vector DB", "Graph DB", "Claude Code", "Codex"]
+            ["Redis", "PostgreSQL", "SQLite", "MongoDB", "Vector DB", "Graph DB", "Markdown", "JSONL", "Object Storage", "Claude Code", "Codex"]
           ),
           capability(
             "memory-retrieval",
@@ -306,6 +405,9 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "keyword-memory-search", title: "Keyword Search · BM25", summary: "按关键词和词项相关性检索记忆。", description: "使用 BM25、倒排索引或全文搜索召回专有名词、编号和精确术语，弥补向量检索对精确词项不敏感的问题。", tags: ["BM25", "Full-text Search"] },
               { id: "hybrid-memory-search", title: "Hybrid Retrieval", summary: "融合关键词召回与向量召回。", description: "结合稀疏检索和稠密检索，通过 RRF 或归一化分数融合候选，再进行权限和时间过滤。", tags: ["Hybrid Search", "RRF"] },
               { id: "memory-reranker", title: "Memory Reranker", summary: "对候选记忆进行相关性重排。", description: "使用 Cross-Encoder 或 LLM Reranker 对查询与候选记忆进行联合打分，并限制最终注入上下文的数量和 Token 预算。", tags: ["Reranker", "Cross-Encoder"] },
+              { id: "structured-memory-filter", title: "Structured / Metadata Filtering", summary: "按用户、项目、类型、时间和权限过滤记忆。", description: "在全文或向量召回前后使用 SQL 条件、metadata filter 或规则过滤候选，避免跨用户、跨项目和跨权限范围召回不相关记录。", tags: ["Metadata Filter", "SQL", "Scope"] },
+              { id: "recency-importance-retrieval", title: "Recency / Importance Ranking", summary: "综合时间、重要性和使用频率决定记忆优先级。", description: "将语义相关度与最近更新时间、最近使用时间、使用次数、置信度和有效状态组合打分；时间衰减不能替代事实有效性判断。", tags: ["Recency", "Importance", "Usage"] },
+              { id: "graph-memory-traversal", title: "Graph Traversal Retrieval", summary: "沿实体关系和事件关联执行多跳记忆查询。", description: "从人物、项目或事件实体出发，按关系边扩展关联记忆；适合需要关系推理和跨事件连接的任务，但需要实体解析、关系更新和图查询成本控制。", tags: ["Graph Query", "Neo4j", "Multi-hop"] },
               {
                 id: "claude-memory-retrieval",
                 title: "Claude Code · Index + On-demand Read",
@@ -326,10 +428,10 @@ export const knowledgeTree: KnowledgeItem = node(
                 id: "codex-memory-retrieval",
                 title: "Codex · Summary + Memory Tools",
                 summary: "先注入记忆摘要，再按需搜索、列出和读取具体记忆。",
-                description: "Codex v2 将 memory_summary.md 作为历史上下文注入新会话，摘要提供项目范围和 rollout 文件的定位线索。需要更具体证据时，再使用 Memory Search、List、Read 工具读取本地记忆或 rollout summary。当前公开的本地 search 实现是对文件内容进行文本匹配，不应把它描述成向量语义检索。",
+                description: "Codex v2 将 memory_summary.md 作为历史上下文注入新会话，摘要提供项目范围和 rollout 文件的定位线索。需要更具体证据时，再通过 Memory Search、List、Read 工具读取本地记忆或 rollout summary。Search 是对文件内容执行文本匹配，支持多查询词、同一行或行窗口匹配、上下文行和分页；不是 Embedding 向量语义检索。",
                 points: [
                   "read_path_v2 指引 Agent 先使用注入的 MEMORY_SUMMARY；只有当历史证据、措辞、时间线或不确定性会影响当前回答时，才打开对应 rollout summary。",
-                  "Memory Search 支持查询词、匹配模式、大小写和上下文行；List / Read 用于定位目录和读取文件片段。",
+                  "Memory Search 支持 Any、AllOnSameLine、AllWithinLines 等匹配模式、大小写控制、上下文行和分页；List 用于枚举目录，Read 支持按路径、行偏移和 Token 上限读取文件片段。",
                   "检索范围被限制在 memories root 内，并拒绝路径穿越和符号链接，避免越权读取本地文件。",
                   "通过 /memories 可以按线程控制是否读取现有记忆，以及当前线程是否可作为未来记忆生成的输入。"
                 ],
@@ -353,6 +455,10 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "memory-deduplication", title: "Deduplication", summary: "识别并合并重复记忆。", description: "使用规范化键、实体 ID、文本相似度和时间窗口识别重复记录，合并时保留原始来源和更新时间。", tags: ["Deduplication", "Canonicalization"] },
               { id: "memory-conflict-resolution", title: "Conflict Resolution", summary: "处理新旧记忆之间的矛盾。", description: "按来源可信度、时间、用户确认和适用范围解决冲突；无法判定时保留多版本或请求用户确认。", tags: ["Conflict Resolution", "Provenance"] },
               { id: "entity-resolution", title: "Entity Resolution", summary: "把不同名称映射到同一实体。", description: "结合别名表、规则、Embedding 和上下文判断实体是否相同，维护稳定 ID 与关系更新。", tags: ["Entity Linking", "Knowledge Graph"] },
+              { id: "incremental-memory-consolidation", title: "Incremental Consolidation", summary: "只处理新增或发生变化的记忆输入。", description: "为每批输入维护 watermark、版本号或变更游标，按增量更新摘要和索引；避免每次全量扫描，也要保证失败重试不会丢失尚未整合的变更。", tags: ["Incremental", "Watermark", "Diff"] },
+              { id: "git-diff-memory-workspace", title: "Git-backed Memory Workspace Diff", summary: "用文件版本基线检测记忆工作区的新增、修改和删除。", description: "为 Memory Workspace 建立本地 Git baseline，在同步 rollout summaries 后计算 diff，只在工作区有变化时启动整合；完成后重置基线，便于追踪增量变化。", tags: ["Git", "Diff", "Workspace"] },
+              { id: "memory-consolidation-lock", title: "Global Lock / Transactional Consolidation", summary: "保证同一份长期记忆不会被多个整合任务同时改写。", description: "使用数据库全局任务租约、文件锁或事务控制整合所有权；写入完成后验证产物，再更新 watermark 或版本基线，避免并发覆盖和半成品摘要。", tags: ["Global Lock", "Lease", "Transaction"] },
+              { id: "memory-version-migration", title: "Memory Versioning / Migration", summary: "在记忆结构升级时兼容旧版本并支持迁移。", description: "为文件布局、Schema 和 Prompt 版本建立显式版本号，使用双写、读旧写新、校验和回滚策略迁移历史记忆，避免 v1 与 v2 产物混用。", tags: ["Versioning", "Migration", "Dual Write"] },
               {
                 id: "claude-memory-consolidation",
                 title: "Claude Code · Index Curation",
@@ -373,12 +479,12 @@ export const knowledgeTree: KnowledgeItem = node(
                 id: "codex-memory-consolidation",
                 title: "Codex · Global Consolidation",
                 summary: "Phase 2 使用全局锁和独立 Agent 整理跨线程记忆。",
-                description: "Codex 在逐线程 Phase 1 之后运行 Phase 2。它先获取全局工作区锁，再按使用情况和保留条件选择 Stage 1 记录，同步文件并计算 Git Workspace Diff；只有发生变化时才启动受限的 Consolidation Agent。v1 与 v2 的最终摘要格式不同。配置中的 max_unused_days 控制记忆多久未被使用后不再进入整合候选，并不等同于逐条 TTL 或立即删除。",
+                description: "Codex 在逐线程 Phase 1 之后运行 Phase 2。它先获取全局工作区文件锁和数据库任务租约，再按使用情况和保留条件选择 Stage 1 记录，同步 rollout summaries 并计算 Git Workspace Diff；只有工作区发生变化时才启动受限的 Consolidation Agent。v2 主要更新 memory_summary.md，v1 还维护 MEMORY.md、memory_summary.md 和可选 skills。max_unused_days 同时参与 Stage 1 旧记录清理和 Phase 2 候选筛选，不是每条 Markdown 文件的简单 TTL。",
                 points: [
                   "全局锁保证同一份 memory workspace 不会被多个整合任务同时修改；State DB watermark 记录已处理输入。",
                   "v1 将 raw_memories.md 和 rollout_summaries/ 同步到工作区，再由 Agent 更新 MEMORY.md、memory_summary.md 和可选 skills。",
                   "v2 更强调生成紧凑的 memory_summary.md：区分用户明确偏好与单次任务决策，按项目和日期组织历史指针，并限制摘要体积。",
-                  "整合 Agent 在本地受限环境中运行；成功后重置 Git 基线，并按整合策略清理已不再需要的 rollout summaries 和扩展资源。max_unused_days 默认 30 天，表示失去整合资格，不应误读为记忆文件到期即删除。"
+                  "整合 Agent 在本地受限环境中运行，不获得网络访问，只允许本地写入；成功后校验产物并重置 Git 基线。旧的 Stage 1 记录、未被选中的 rollout summaries 和过期扩展资源按不同清理规则处理，不能把 max_unused_days 简化为所有记忆文件的统一 TTL。" 
                 ],
                 tags: ["Codex", "Phase 2", "Consolidation Agent", "Git Diff"],
                 resources: [
@@ -400,6 +506,9 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "memory-decay", title: "Importance Decay", summary: "根据时间和使用频率调整记忆权重。", description: "结合时间衰减、访问频率、重要性和用户确认更新检索分数，降低陈旧信息的优先级。", tags: ["Decay", "Importance", "Recency"] },
               { id: "memory-forgetting", title: "Forgetting Policy", summary: "按规则淘汰低价值或过期记忆。", description: "定义容量上限、淘汰优先级和保护规则，确保关键事实、审计记录和用户明确保留的信息不会被随意清除。", tags: ["Forgetting", "Retention"] },
               { id: "memory-user-controls", title: "User Correction & Deletion", summary: "允许用户查看、纠正和删除记忆。", description: "提供记忆来源、修改记录和删除接口，并同步清理缓存、向量索引和派生摘要，防止删除后又被重新召回。", tags: ["Privacy", "User Control", "Deletion"] },
+              { id: "memory-retention-pruning", title: "Retention Window / Pruning", summary: "按年龄、使用情况和保留策略清理不再需要的记忆记录。", description: "区分候选筛选、数据库记录清理、文件归档和用户可见删除；同一个 max-age 或 inactivity 配置可能只影响某个阶段，必须明确其作用对象和实际删除行为。", tags: ["Retention", "Pruning", "Inactivity Window"] },
+              { id: "memory-tombstone-propagation", title: "Tombstone / Deletion Propagation", summary: "将用户删除请求传播到所有副本和派生记忆。", description: "为删除请求建立 tombstone 或删除事件，传播到数据库、Markdown 摘要、向量索引、缓存、备份和派生摘要；避免旧副本重新导入已删除内容。", tags: ["Tombstone", "Deletion", "Consistency"] },
+              { id: "memory-archive-compaction", title: "Archive / Compaction", summary: "将低频历史记忆归档，并压缩活跃记忆集合。", description: "把低频原始轨迹移入冷存储或压缩归档，保留可检索摘要和稳定引用；归档与删除不同，必须定义恢复和访问路径。", tags: ["Archive", "Compaction", "Cold Storage"] },
               {
                 id: "claude-memory-lifecycle",
                 title: "Claude Code · Persistent Local Memory",
@@ -423,9 +532,9 @@ export const knowledgeTree: KnowledgeItem = node(
                 description: "Codex Local Memories 默认关闭。启用后，后台任务只处理满足空闲时间、历史年龄、批次和速率限制的线程；/memories 可以分别控制当前会话是否读取已有记忆、是否贡献未来记忆。max_unused_days 只让长期未使用的记忆失去整合资格，并非逐条过期删除；用户可通过 Delete Codex memories 重置整台机器的本地记忆库。",
                 points: [
                   "全局功能默认关闭；开启后仍可用 /memories 或 memories.use_memories、memories.generate_memories 分别控制读取和生成。",
-                  "后台生成跳过活跃或短期线程；默认最少空闲 6 小时、候选线程最大年龄 30 天，每次启动最多处理 16 个候选线程。",
+                  "后台生成跳过活跃或短期线程；当前源码默认最少空闲 6 小时、候选线程最大年龄 10 天、每次启动最多领取 2 个候选线程。max_unused_days 默认 30 天，是 Stage 1 记录清理和 Phase 2 候选筛选的另一项策略。",
                   "min_rate_limit_remaining_percent 可阻止额度不足时启动生成；生成字段会进行 Secret Redaction。",
-                  "max_unused_days 默认 30 天，含义是超过未使用窗口后不再参与整合，不是 TTL 或自动删除时间。",
+                  "max_unused_days 默认 30 天，既影响旧 Stage 1 输出的清理，也影响 Phase 2 整合候选资格；它不是所有 rollout Markdown 文件统一到期删除的 TTL。",
                   "可通过 Settings > Personalization 中的 Delete Codex memories 清空本机记忆库；/memories 提供逐会话读写控制。"
                 ],
                 tags: ["Codex", "Retention", "Background Jobs", "User Controls"],
@@ -436,6 +545,68 @@ export const knowledgeTree: KnowledgeItem = node(
               }
             ],
             ["TTL", "Forgetting", "Privacy", "Claude Code", "Codex"]
+          ),
+          capability(
+            "memory-usage-feedback",
+            "记忆使用反馈 Memory Usage & Feedback",
+            "利用记忆的实际召回和使用结果，调整后续记忆的优先级与质量。",
+            "记忆系统不能只记录写入次数，还应观察记忆是否被检索、是否被模型引用、是否帮助任务完成，以及用户是否纠正或否定了它。反馈数据可用于排序、整合、淘汰和质量评估，但不能仅凭访问次数推断事实正确。",
+            [
+              { id: "memory-usage-tracking", title: "Usage Count / Last-used Tracking", summary: "记录每条记忆被引用的次数和最近使用时间。", description: "在记忆被检索并实际用于回答或任务时更新 usage_count、last_usage 等字段；与单纯的搜索曝光次数区分，防止未被采用的候选也被算作有效记忆。", tags: ["Usage Count", "Last Usage", "Telemetry"] },
+              { id: "memory-relevance-feedback", title: "Relevance / Outcome Feedback", summary: "根据记忆是否相关、是否帮助完成任务调整质量判断。", description: "结合用户反馈、任务成功率、后续纠正和模型引用记录评估记忆价值；将正向使用信号与错误、过时和误召回信号分开存储。", tags: ["Relevance", "Outcome", "Feedback Loop"] },
+              { id: "explicit-memory-edit", title: "Explicit Remember / Forget / Correction", summary: "将用户明确提出的记忆修改转为可审查的更新请求。", description: "把用户的记住、忘记或纠正请求写入独立更新队列或 notes，而不是让模型随意覆盖生成文件；后续由受控整合流程应用并验证修改。", tags: ["User Control", "Ad Hoc Notes", "Correction"] },
+              { id: "memory-quality-observability", title: "Memory Quality Metrics", summary: "监控提取、检索、整合的成功率、延迟和资源消耗。", description: "记录提取有无输出、任务失败与重试、检索命中、截断、Token 使用、存储大小和整合耗时；用指标定位记忆质量和系统可靠性问题。", tags: ["Metrics", "Tracing", "Quality"] },
+              {
+                id: "codex-memory-usage-feedback",
+                title: "Codex · Citation-based Usage Feedback",
+                summary: "当历史 Rollout 摘要被引用时，更新使用次数和最近使用时间。",
+                description: "Codex 的 Memory Store 在历史 Stage 1 输出被引用时更新 usage_count 和 last_usage。Phase 2 按使用次数优先、最近使用时间其次选择整合输入，因此检索后的真实使用会反过来影响后续长期记忆的组织和保留。",
+                points: [
+                  "只对被引用的 Stage 1 输出记录使用情况，而不是简单把所有搜索结果都视为有效使用。",
+                  "Phase 2 使用 usage_count 和 last_usage 排序候选，并结合 max_unused_days 等窗口筛选。",
+                  "Memory Search / List / Read 工具也记录调用成功、作用范围和结果是否截断等指标。",
+                  "使用频率是价值信号之一，不代表事实正确；仍需结合来源证据、时间和用户纠正。"
+                ],
+                tags: ["Codex", "Usage Tracking", "Citation", "Feedback Loop"],
+                resources: [
+                  { label: "Codex Memory Store Usage Tracking", url: "https://github.com/openai/codex/blob/main/codex-rs/state/src/runtime/memories.rs" },
+                  { label: "Codex Memory Tool Metrics", url: "https://github.com/openai/codex/blob/main/codex-rs/ext/memories/src/tools/mod.rs" }
+                ]
+              }
+            ],
+            ["Usage Tracking", "Relevance Feedback", "User Correction", "Metrics"]
+          ),
+          capability(
+            "memory-security-trust",
+            "记忆安全与信任 Memory Security & Trust",
+            "保护记忆数据的来源可信度、访问范围、敏感内容和执行边界。",
+            "记忆会跨会话影响后续 Agent 行为，因此既是数据存储问题，也是信任边界问题。需要防止秘密泄露、跨项目或跨用户召回、路径越权、历史提示注入和后台整合任务越权；模型生成的记忆应被视为带来源的证据，而不是高于当前指令的权威规则。",
+            [
+              { id: "memory-secret-pii-protection", title: "Secret / PII Redaction", summary: "在采集、提取和持久化多个阶段保护敏感数据。", description: "对 API Key、Token、邮箱、电话和个人身份信息使用规则、NER 或 DLP 检测；在进入模型、日志和持久化存储前按策略脱敏，并测试派生摘要是否重新暴露敏感信息。", tags: ["Secrets", "PII", "DLP"] },
+              { id: "memory-scope-isolation", title: "User / Tenant / Project Scope Isolation", summary: "限制记忆只能在所属用户、项目和权限范围内访问。", description: "为记忆记录绑定 user_id、tenant_id、project_id、repository_id 或 session scope；检索、读取、更新和删除时都在可信服务端执行权限过滤。", tags: ["Tenant Isolation", "RBAC", "Scope"] },
+              { id: "memory-untrusted-evidence", title: "Memory as Untrusted Evidence", summary: "把历史消息和记忆内容当作证据数据，而不是可覆盖当前规则的指令。", description: "保留来源与信任等级；历史网页、工具输出、用户粘贴内容和旧 Agent 指令都可能包含提示注入。读取记忆时必须服从当前系统与项目指令，不执行记忆内容中嵌入的命令。", tags: ["Prompt Injection", "Trust Boundary", "Provenance"] },
+              { id: "memory-path-confinement", title: "Path Confinement / Symlink Defense", summary: "限制记忆文件工具只能访问指定根目录内的普通文件。", description: "对相对路径规范化，拒绝路径穿越、符号链接和非文件对象；对 Search、List、Read 使用统一的 root scope，防止记忆工具变成任意本地文件读取入口。", tags: ["Path Traversal", "Symlink", "Filesystem Security"] },
+              { id: "memory-agent-sandbox", title: "Sandboxed Consolidation Agent", summary: "为后台记忆整合 Agent 设置独立的工具、网络和文件权限。", description: "使用独立运行上下文，关闭递归记忆生成和协作委派，限制网络访问和写入目录；由可信运行时验证输出文件，而不是依赖 Prompt 自我约束。", tags: ["Sandbox", "No Network", "Least Privilege"] },
+              {
+                id: "codex-memory-security-controls",
+                title: "Codex · Redaction, Scoped Tools & Sandboxed Consolidation",
+                summary: "通过脱敏、路径约束和无网络本地整合保护记忆工作区。",
+                description: "Codex 在提取结果解析时执行 Secret Redaction；Memory Search、List、Read 将路径限制在 memories root 并拒绝路径穿越和符号链接；Phase 2 Consolidation Agent 在受限配置中运行，不允许网络访问，只能写入本地记忆工作区。",
+                points: [
+                  "Rollout 输入也会筛选并脱敏，不能把历史工具输出中的任意文本当作指令执行。",
+                  "本地 Search / List / Read 仅访问 memory root 下允许的普通文件，并限制结果数量、行数和 Token 数。",
+                  "Consolidation Agent 关闭 MCP Servers、Apps Instructions、Collab 和 Memory 自身读写，避免递归与外部数据外传。",
+                  "Agent 运行成功后还会校验必需摘要文件，并移除工作区中的符号链接。"
+                ],
+                tags: ["Codex", "Secret Redaction", "Path Safety", "Sandbox"],
+                resources: [
+                  { label: "Codex Phase 2 Sandbox", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/phase2.rs" },
+                  { label: "Codex Local Memory Path Guard", url: "https://github.com/openai/codex/blob/main/codex-rs/ext/memories/src/local/path.rs" },
+                  { label: "Codex Memory Read Tool", url: "https://github.com/openai/codex/blob/main/codex-rs/ext/memories/src/local/read.rs" }
+                ]
+              }
+            ],
+            ["Privacy", "Trust Boundary", "Path Safety", "Sandbox"]
           ),
           capability(
             "memory-instruction-boundary",
@@ -590,7 +761,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "function-schema", title: "Function Calling Schema", summary: "用 JSON Schema 定义工具参数。", description: "声明工具名称、用途、必填参数、类型和枚举，使用严格 Schema 减少参数歧义。", tags: ["Function Calling", "JSON Schema"] },
               { id: "typed-tool-contract", title: "Pydantic / Zod Contract", summary: "用类型系统校验输入和输出。", description: "在服务端用 Pydantic 或 Zod 对工具参数、业务约束和返回结构进行运行时校验。", tags: ["Pydantic", "Zod", "Type Safety"] },
-              { id: "openapi-tool-generation", title: "OpenAPI Tool Generation", summary: "从 API 描述生成工具定义。", description: "从 OpenAPI 文档读取 endpoint、参数和认证要求，生成工具包装层并补充面向模型的语义描述。", tags: ["OpenAPI", "API Schema"] }
+              { id: "openapi-tool-generation", title: "OpenAPI Tool Generation", summary: "从 API 描述生成工具定义。", description: "从 OpenAPI 文档读取 endpoint、参数和认证要求，生成工具包装层并补充面向模型的语义描述。", tags: ["OpenAPI", "API Schema"] },
+              { id: "codex-memory-tool-namespace", title: "Codex · Memory Tools Namespace", summary: "将 Search、List、Read 和 Add Ad Hoc Note 暴露为有 Schema 的专用工具。", description: "Codex 的 Memory Extension 为模型提供专用工具命名空间，分别用于搜索记忆文件、列出目录、读取指定路径和提交用户明确要求的记忆修改；工具参数与返回值使用 Schema，并记录调用范围、成功状态和截断信息。", tags: ["Codex", "Tool Namespace", "Search / List / Read"], resources: [{ label: "Codex Memory Tools", url: "https://github.com/openai/codex/tree/main/codex-rs/ext/memories/src/tools" }] }
             ],
             ["Schema", "Contract", "Type Safety"]
           ),
@@ -697,7 +869,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "task-queue", title: "Task Queue · BullMQ / Celery", summary: "通过任务队列解耦请求和后台执行。", description: "使用 Redis Queue、BullMQ 或 Celery 管理任务分发、并发、重试、优先级和死信队列。", tags: ["BullMQ", "Celery", "Redis"] },
               { id: "durable-workflow-engine", title: "Durable Workflow · Temporal", summary: "持久化执行历史并自动恢复工作流。", description: "使用 Temporal 等持久执行引擎管理长流程、定时器、重试和故障恢复，避免自行实现复杂恢复协议。", tags: ["Temporal", "Durable Execution"], resources: [{ label: "Temporal Documentation", url: "https://docs.temporal.io/" }] },
-              { id: "scheduler", title: "Scheduler", summary: "执行定时、周期和延迟任务。", description: "通过 Cron、任务调度器或延迟队列触发 Agent 工作，并处理重复执行、时区和错过调度的补偿策略。", tags: ["Cron", "Scheduling"] }
+              { id: "scheduler", title: "Scheduler", summary: "执行定时、周期和延迟任务。", description: "通过 Cron、任务调度器或延迟队列触发 Agent 工作，并处理重复执行、时区和错过调度的补偿策略。", tags: ["Cron", "Scheduling"] },
+              { id: "codex-sqlite-memory-jobs", title: "Codex · SQLite-backed Memory Jobs", summary: "通过 SQLite jobs 表、领取租约和退避重试调度记忆后台任务。", description: "Codex 将每个 rollout 的提取任务和全局整合任务写入 Memory Store；State DB 提供线程元数据，独立 Memory DB 保存 stage1_outputs 与 jobs。Phase 1 使用线程级租约并行处理，Phase 2 使用全局任务租约和文件锁串行写入工作区。", tags: ["Codex", "SQLite", "Job Lease", "Retry"], resources: [{ label: "Codex Memory Job State", url: "https://github.com/openai/codex/blob/main/codex-rs/state/src/runtime/memories.rs" }] }
             ],
             ["Queue", "Durable Execution", "Scheduler"]
           )
@@ -731,6 +904,7 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "context-builder", title: "Context Builder", summary: "统一构建模型调用所需的上下文对象。", description: "将系统指令、用户目标、状态摘要、记忆、检索证据和工具结果装配为结构化 Context。", tags: ["Context Builder", "Assembly"] },
               { id: "memory-injection", title: "Memory Injection", summary: "按当前任务召回并注入相关记忆。", description: "根据用户、任务和时间过滤记忆，控制注入数量，并保留来源、更新时间和可信度。", tags: ["Memory", "Retrieval"] },
+              { id: "codex-memory-summary-injection", title: "Codex · memory_summary Injection", summary: "在新会话开始时注入精简摘要，再通过工具按需读取历史证据。", description: "Codex v2 将 memory_summary.md 渲染为 MEMORY_SUMMARY 注入新会话的开发者上下文；摘要中的项目和 rollout 路径用于定位详细历史。只有当历史证据、原始措辞、时间线或不确定性会影响当前工作时，才读取具体 rollout summary。", tags: ["Codex", "Context Injection", "Progressive Disclosure"], resources: [{ label: "Codex v2 Read Path", url: "https://github.com/openai/codex/blob/main/codex-rs/ext/memories/templates/memories/read_path_v2.md" }] },
               { id: "retrieval-injection", title: "RAG Context Injection", summary: "将检索证据按相关性组织进 Prompt。", description: "对候选文档进行权限过滤、去重和排序，保留引用标识，并将不可信内容明确标记为数据。", tags: ["RAG", "Evidence"] }
             ],
             ["Context Builder", "Memory", "RAG"]
@@ -847,7 +1021,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "task-quality-metrics", title: "Task Quality Metrics", summary: "衡量完成率、准确率和人工接管率。", description: "统计任务成功率、用户采纳率、返工率、事实错误率和人工升级比例。", tags: ["Success Rate", "Quality"] },
               { id: "latency-metrics", title: "Latency / Throughput", summary: "监控端到端延迟和系统吞吐。", description: "记录 P50/P95/P99 延迟、首 Token 时间、工具耗时、队列等待和超时率。", tags: ["P95", "Throughput", "SLO"] },
-              { id: "cost-metrics", title: "Cost / Token Metrics", summary: "追踪单任务模型与工具成本。", description: "按任务和模型统计输入输出 Token、调用次数、工具成本和缓存命中率，定位成本异常。", tags: ["Token", "Budget", "Cost"] }
+              { id: "cost-metrics", title: "Cost / Token Metrics", summary: "追踪单任务模型与工具成本。", description: "按任务和模型统计输入输出 Token、调用次数、工具成本和缓存命中率，定位成本异常。", tags: ["Token", "Budget", "Cost"] },
+              { id: "codex-memory-pipeline-metrics", title: "Codex · Memory Pipeline Telemetry", summary: "分别监控 Phase 1、Phase 2、记忆工具和存储规模。", description: "Codex 为记忆流水线记录阶段耗时、任务成功/失败/无输出数量、Token 使用、Memory Search/List/Read 工具调用结果与截断状态，以及本地记忆工作区大小；指标按 v1/v2 版本标记。", tags: ["Codex", "OpenTelemetry", "Pipeline Metrics"], resources: [{ label: "Codex Memory Metrics", url: "https://github.com/openai/codex/tree/main/codex-rs/memories/write/src" }] }
             ],
             ["Quality", "Latency", "Cost"]
           ),
@@ -881,7 +1056,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "trust-boundary", title: "Trust Boundary Separation", summary: "区分可信指令与不可信内容。", description: "将系统指令、用户请求、检索资料和工具结果分层传递，对不可信片段添加明确边界和来源标记。", tags: ["Trust Boundary", "Untrusted Input"] },
               { id: "tool-allowlist", title: "Tool Allowlist / Policy", summary: "使用工具白名单和策略限制可执行动作。", description: "按任务和用户身份限制工具集合、参数范围、目标域名和副作用，执行前进行服务端策略检查。", tags: ["Allowlist", "Policy"] },
-              { id: "output-sanitization", title: "Output Sanitization", summary: "过滤不安全输出和可执行内容。", description: "对 HTML、Markdown、URL 和文件产物进行安全处理，避免脚本注入、危险链接和不可信内容直接执行。", tags: ["Sanitization", "XSS"] }
+              { id: "output-sanitization", title: "Output Sanitization", summary: "过滤不安全输出和可执行内容。", description: "对 HTML、Markdown、URL 和文件产物进行安全处理，避免脚本注入、危险链接和不可信内容直接执行。", tags: ["Sanitization", "XSS"] },
+              { id: "codex-memory-untrusted-rollout", title: "Codex · Historical Memory as Untrusted Evidence", summary: "读取历史 Rollout 时把其中的指令视为数据，不允许覆盖当前规则。", description: "Codex v2 Read Path 明确要求不要执行历史 Rollout 中出现的指令；记忆摘要只提供历史背景，不能证明当前行为。对于会变化或影响重大的事实，应检查当前权威来源并说明不确定性。", tags: ["Codex", "Prompt Injection", "Untrusted Data"], resources: [{ label: "Codex v2 Read Path", url: "https://github.com/openai/codex/blob/main/codex-rs/ext/memories/templates/memories/read_path_v2.md" }] }
             ],
             ["Injection", "Trust", "Guardrails"]
           ),
@@ -905,7 +1081,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "pii-redaction", title: "PII Detection / Redaction", summary: "识别并脱敏个人敏感信息。", description: "使用规则、NER 或 DLP 检测邮箱、电话、证件号和敏感字段，在日志和外部模型调用前按策略脱敏。", tags: ["PII", "DLP", "Redaction"] },
               { id: "encryption", title: "Encryption at Rest / Transit", summary: "保护传输中和持久化的数据。", description: "使用 TLS 保护传输，使用 KMS 管理静态数据加密密钥，并限制密钥访问和轮换。", tags: ["TLS", "KMS", "Encryption"] },
-              { id: "retention-deletion", title: "Retention / Deletion Policy", summary: "按数据类型执行保留和删除策略。", description: "定义日志、记忆和文档的保留周期，删除时同步清理缓存、索引和派生数据，并保留必要审计。", tags: ["Retention", "Deletion"] }
+              { id: "retention-deletion", title: "Retention / Deletion Policy", summary: "按数据类型执行保留和删除策略。", description: "定义日志、记忆和文档的保留周期，删除时同步清理缓存、索引和派生数据，并保留必要审计。", tags: ["Retention", "Deletion"] },
+              { id: "codex-secret-redaction", title: "Codex · Memory Secret Redaction", summary: "在 Rollout 输入与结构化提取结果中执行密钥脱敏。", description: "Codex 在构建记忆输入时筛选响应内容，并在解析提取结果后对 raw_memory、rollout_summary 和 rollout_slug 执行 Secret Redaction；v2 还对摘要长度进行限制。", tags: ["Codex", "Secret Redaction", "Data Minimization"], resources: [{ label: "Codex Stage One Output", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/phase1_output.rs" }] }
             ],
             ["PII", "Encryption", "Retention"]
           ),
@@ -917,7 +1094,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "rate-limit-circuit-breaker", title: "Rate Limit / Circuit Breaker", summary: "限制调用速率并隔离持续故障服务。", description: "按用户、模型和工具设置限流，使用熔断和半开探测避免故障扩散。", tags: ["Rate Limit", "Circuit Breaker"] },
               { id: "agent-budget", title: "Agent Budget", summary: "限制 Token、工具次数、时间和并发。", description: "为单任务设置最大循环步数、模型调用数、Token 预算、执行时间和工具调用次数，超限后暂停或转人工。", tags: ["Budget", "Token", "Limits"] },
-              { id: "audit-log", title: "Audit Log", summary: "记录敏感决策、审批和外部副作用。", description: "记录主体、动作、资源、参数摘要、授权结果、审批信息和执行结果，提供关联 ID 和防篡改存储。", tags: ["Audit", "Compliance"] }
+              { id: "audit-log", title: "Audit Log", summary: "记录敏感决策、审批和外部副作用。", description: "记录主体、动作、资源、参数摘要、授权结果、审批信息和执行结果，提供关联 ID 和防篡改存储。", tags: ["Audit", "Compliance"] },
+              { id: "codex-consolidation-sandbox", title: "Codex · Sandboxed Consolidation Agent", summary: "整合 Agent 禁止网络访问，只能在本地记忆工作区内写入。", description: "Codex Phase 2 为内部 Consolidation Agent 创建受限配置：关闭 MCP Servers、Apps Instructions、Collab 和记忆读写，设置 no-network sandbox 与本地工作区写入边界，并在完成后校验记忆产物。", tags: ["Codex", "Sandbox", "No Network", "Least Privilege"], resources: [{ label: "Codex Phase 2 Implementation", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/phase2.rs" }] }
             ],
             ["Rate Limit", "Budget", "Audit"]
           )
