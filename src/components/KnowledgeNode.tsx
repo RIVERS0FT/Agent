@@ -5,6 +5,24 @@ import type { KnowledgeNodeData } from "../types";
 
 type KnowledgeFlowNode = Node<KnowledgeNodeData, "knowledge">;
 
+function ExpandButton({ data }: { data: KnowledgeNodeData }) {
+  if (!data.hasChildren) return null;
+  return (
+    <button
+      type="button"
+      className="expand-node-button nodrag"
+      aria-label={data.expanded ? "收起下级" : "展开下级"}
+      title={data.expanded ? "收起下级" : "展开下级"}
+      onClick={(event) => {
+        event.stopPropagation();
+        data.onToggle(data.item.id);
+      }}
+    >
+      {data.expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+    </button>
+  );
+}
+
 export function KnowledgeNode({ data, selected }: NodeProps<KnowledgeFlowNode>) {
   const className =
     "knowledge-node node-" +
@@ -39,57 +57,64 @@ export function KnowledgeNode({ data, selected }: NodeProps<KnowledgeFlowNode>) 
         <>
           <div className="root-node-kicker">
             <span className="root-node-pulse" />
-            <span>AGENT KNOWLEDGE SYSTEM</span>
+            <span>AGENT SYSTEM</span>
           </div>
           <h2>{data.item.title}</h2>
           <p>{data.item.summary}</p>
           <div className="root-node-bottom">
-            <span><CircleDot size={12} /> 交互式知识地图</span>
+            <span><CircleDot size={12} /> 功能模块总览</span>
             <span>从左到右探索</span>
           </div>
         </>
       )}
 
-      {data.kind === "category" && (
+      {data.kind === "module" && (
         <>
-          <div className="category-node-top">
-            <span className="category-index">{data.indexLabel}</span>
-            <span className="category-kicker">KNOWLEDGE DOMAIN</span>
-            <span className="category-accent" />
+          <div className="module-node-top">
+            <span className="module-index">{data.indexLabel}</span>
+            <span className="module-kicker">AGENT MODULE</span>
+            <span className="module-accent" />
           </div>
-          <div className="category-title-row">
+          <div className="module-title-row">
             <h3>{data.item.title}</h3>
-            <button
-              type="button"
-              className="expand-node-button nodrag"
-              aria-label={data.expanded ? "收起主题" : "展开主题"}
-              title={data.expanded ? "收起主题" : "展开主题"}
-              onClick={(event) => {
-                event.stopPropagation();
-                data.onToggle(data.item.id);
-              }}
-            >
-              {data.expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </button>
+            <ExpandButton data={data} />
           </div>
           <p>{data.item.summary}</p>
-          <div className="category-node-bottom">
-            <span>{data.item.children?.length ?? 0} 个主题</span>
-            <span>{data.expanded ? "点击收起" : "点击展开"}</span>
+          <div className="module-node-bottom">
+            <span>{data.item.children?.length ?? 0} 项内部能力</span>
+            <span>{data.expanded ? "已展开" : "展开模块"}</span>
           </div>
         </>
       )}
 
-      {data.kind === "topic" && (
+      {data.kind === "capability" && (
         <>
-          <div className="topic-node-kicker">
-            <span className="topic-node-dot" />
-            <span>TOPIC</span>
+          <div className="capability-node-top">
+            <span className="capability-node-dot" />
+            <span>CAPABILITY</span>
+          </div>
+          <div className="capability-title-row">
+            <h3>{data.item.title}</h3>
+            <ExpandButton data={data} />
+          </div>
+          <p>{data.item.summary}</p>
+          <div className="capability-node-bottom">
+            <span>{data.item.children?.length ?? 0} 种技术实现</span>
+            <span>{data.expanded ? "已展开" : "查看实现"}</span>
+          </div>
+        </>
+      )}
+
+      {data.kind === "implementation" && (
+        <>
+          <div className="implementation-node-kicker">
+            <span className="implementation-node-dot" />
+            <span>IMPLEMENTATION</span>
           </div>
           <h3>{data.item.title}</h3>
           <p>{data.item.summary}</p>
           {!!data.item.tags?.length && (
-            <div className="topic-node-tags">
+            <div className="implementation-node-tags">
               {data.item.tags.slice(0, 2).map((tag) => (
                 <span key={tag}>{tag}</span>
               ))}

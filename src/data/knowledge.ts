@@ -1,528 +1,684 @@
-import type { KnowledgeItem } from "../types";
+import type { KnowledgeItem, KnowledgeResource } from "../types";
 
-export const knowledgeTree: KnowledgeItem = {
-  id: "agent-root",
-  title: "Agent 开发知识图谱",
-  summary: "从目标理解、推理规划到工具执行与持续反馈，系统掌握构建可靠 Agent 的关键知识。",
-  description: "Agent 是一个围绕目标持续运行的软件系统。它接收上下文，利用模型进行判断，通过工具影响外部世界，并根据执行结果更新状态。真正的 Agent 工程不只关乎模型调用，还包括任务边界、状态管理、工具契约、知识供给、评估、安全与运行时治理。",
-  points: [
-    "先定义任务与成功标准，再决定是否需要 Agent，而不是为使用 Agent 而使用 Agent。",
-    "把模型、上下文、工具、状态、控制流和评估视为一个整体系统。",
-    "从单 Agent、少工具、短流程开始，依据真实瓶颈逐步增加复杂度。"
-  ],
-  tags: ["LLM", "Reasoning", "Tools", "Memory", "Evaluation"],
-  children: [
-    {
-      id: "fundamentals",
-      title: "基础认知",
-      summary: "理解 Agent 的定义、边界与基本运行闭环。",
-      description: "基础认知回答三个问题：Agent 是什么、它与普通工作流有什么区别，以及它如何在环境中完成目标。掌握这些概念后，才能合理判断任务是否值得交给 Agent。",
-      color: "#4E83E6",
-      tags: ["Agent", "Workflow", "Loop"],
-      points: [
-        "Agent 的核心是目标驱动的循环，而不是一次性文本生成。",
-        "自主性应按任务风险和可逆性分级，不是越高越好。",
-        "确定性流程优先使用普通代码，开放式决策再交给模型。"
-      ],
-      children: [
-        {
-          id: "agent-definition",
-          title: "Agent 是什么",
-          summary: "模型在目标约束下感知、决策并采取行动。",
-          description: "Agent 通常由模型、指令、工具、状态和控制循环组成。模型负责解释上下文与选择下一步，工具负责与外部系统交互，运行时负责调度、校验和保存状态。",
-          points: [
-            "输入不只是用户消息，还包括历史状态、检索结果和环境反馈。",
-            "输出不只是回答，也可能是工具调用、状态变更或交接请求。",
-            "以任务是否完成作为循环终止条件，并设置步数、时间和预算上限。"
-          ],
-          tags: ["定义", "自主性", "运行时"],
-          resources: [{ label: "Building effective agents · Anthropic", url: "https://www.anthropic.com/research/building-effective-agents" }]
-        },
-        {
-          id: "workflow-vs-agent",
-          title: "Workflow vs Agent",
-          summary: "区分预定义流程与模型动态决策。",
-          description: "Workflow 的步骤和分支主要由开发者预先编排；Agent 则在运行时根据上下文决定下一步行动。两者不是对立关系，实际系统通常将确定性工作流与局部 Agent 决策组合。",
-          points: [
-            "步骤稳定、规则明确、结果可预测：优先使用 Workflow。",
-            "需要理解非结构化输入、动态选择工具或处理未知路径：考虑 Agent。",
-            "将高风险操作放在确定性节点中，由代码负责权限与校验。"
-          ],
-          tags: ["流程编排", "决策边界", "架构选型"]
-        },
-        {
-          id: "agent-loop",
-          title: "Agent 运行闭环",
-          summary: "Observe → Think → Act → Reflect。",
-          description: "典型循环从观察当前状态开始，模型根据目标和可用动作进行判断，运行时执行动作并收集结果，再把新状态交回模型。循环应有明确的完成、失败和转人工出口。",
-          points: [
-            "Observe：整理用户目标、历史上下文和环境状态。",
-            "Think / Plan：判断是否已有足够信息，以及下一步动作。",
-            "Act：调用工具或输出结果；随后验证结果并更新状态。"
-          ],
-          tags: ["Observe", "Plan", "Act", "Feedback"]
-        },
-        {
-          id: "autonomy-levels",
-          title: "自主性与任务边界",
-          summary: "按风险、可逆性和影响范围分配自主权限。",
-          description: "Agent 的自主程度应与任务风险匹配。只读检索可以较高自动化；发送消息、修改数据、付款或删除资源等动作应加入确认、限额和审计。",
-          points: [
-            "区分建议、草稿、可逆写入和不可逆操作。",
-            "为每类工具定义权限范围、确认策略和失败回滚方式。",
-            "明确任务预算、最大循环次数、超时与升级人工条件。"
-          ],
-          tags: ["Human approval", "Guardrails", "Risk"]
-        }
-      ]
-    },
-    {
-      id: "model-prompt",
-      title: "模型与提示工程",
-      summary: "选择合适的模型，并为其提供高质量上下文与输出约束。",
-      description: "模型与提示工程决定 Agent 的理解、推理和生成能力。工程重点不是堆砌长 Prompt，而是通过模型选型、上下文组织、结构化输出和持续评测，让模型在明确边界内稳定工作。",
-      color: "#8A6BD8",
-      tags: ["LLM", "Prompt", "Context"],
-      points: [
-        "根据任务难度、延迟、成本和工具调用能力选择模型。",
-        "把系统规则、任务上下文、参考资料和工具结果分层组织。",
-        "用 Schema、校验与重试处理结构化输出，而不是只依赖提示词。"
-      ],
-      children: [
-        {
-          id: "model-selection",
-          title: "模型选型",
-          summary: "在能力、延迟、成本与稳定性之间权衡。",
-          description: "不同模型在复杂推理、长上下文、多模态、结构化输出和工具调用方面各有差异。模型选型应建立在代表性任务集和可量化指标上，而不是只比较榜单分数。",
-          points: [
-            "用真实任务集测试成功率、工具参数准确率和拒答行为。",
-            "将延迟、Token 成本、上下文长度和速率限制纳入评估。",
-            "通过路由策略把简单任务交给轻量模型，复杂任务交给更强模型。"
-          ],
-          tags: ["模型路由", "Latency", "Cost"]
-        },
-        {
-          id: "system-prompt",
-          title: "System Prompt",
-          summary: "定义角色、目标、约束、流程与失败策略。",
-          description: "系统提示词是 Agent 的行为契约。它应清晰说明任务目标、可用能力、禁止事项、决策原则和输出要求；动态数据与工具结果应作为独立上下文传入。",
-          points: [
-            "把稳定规则放在系统层，把每轮任务放在用户或状态层。",
-            "明确工具使用条件、信息不足时的行为和停止条件。",
-            "避免相互冲突、重复堆叠和无法验证的模糊要求。"
-          ],
-          tags: ["System", "Instruction", "Policy"]
-        },
-        {
-          id: "context-engineering",
-          title: "上下文工程",
-          summary: "管理模型每一轮真正需要看到的信息。",
-          description: "上下文工程关注信息的选择、排序、压缩和更新。上下文窗口不是无限记忆，过量历史会增加成本并稀释关键信息；应根据当前任务检索、摘要并注入最相关的信息。",
-          points: [
-            "区分系统规则、当前目标、历史摘要、检索片段和工具返回。",
-            "对长对话做滚动摘要，保留决策、约束和未完成事项。",
-            "为检索结果标注来源、时间和可信度，避免无依据的信息混入。"
-          ],
-          tags: ["Context window", "Summarization", "Retrieval"]
-        },
-        {
-          id: "structured-output",
-          title: "结构化输出",
-          summary: "用 JSON Schema 等契约约束模型响应。",
-          description: "当下游代码需要消费模型结果时，应优先采用受约束的结构化输出。结构化输出降低了解析歧义，但仍需校验业务规则、字段语义和数据权限。",
-          points: [
-            "定义必填字段、枚举、类型和嵌套结构。",
-            "对输出执行 Schema 校验与业务校验，失败后有限重试。",
-            "区分模型生成的候选值与经过权限校验的最终动作。"
-          ],
-          tags: ["JSON Schema", "Validation", "Typed output"],
-          resources: [{ label: "OpenAI Structured Outputs", url: "https://platform.openai.com/docs/guides/structured-outputs" }]
-        }
-      ]
-    },
-    {
-      id: "architecture",
-      title: "Agent 架构",
-      summary: "掌握常见推理模式与单 Agent、多 Agent 的架构取舍。",
-      description: "架构模式描述 Agent 如何拆解任务、选择动作、验证结果和组织协作。应先使用最简单且可观测的模式，再根据任务复杂度和失败数据演进。",
-      color: "#D99445",
-      tags: ["ReAct", "Planning", "Multi-Agent"],
-      points: [
-        "模式是解决问题的工具，不是必须套用的框架模板。",
-        "规划与执行之间需要状态、校验和异常恢复机制。",
-        "多 Agent 会增加通信、调试和评估成本，必须有明确收益。"
-      ],
-      children: [
-        {
-          id: "react-pattern",
-          title: "ReAct",
-          summary: "交替进行推理与行动，利用观察结果推进任务。",
-          description: "ReAct 将模型推理与工具行动结合：模型提出下一步动作，运行时执行并返回观察结果，再由模型决定后续步骤。适合需要逐步探索和动态工具选择的任务。",
-          points: [
-            "每次行动都应有明确目的，并能通过观察结果判断是否有效。",
-            "工具执行结果应结构化返回，减少模型误读。",
-            "限制循环次数，并在重复失败或无进展时停止或升级。"
-          ],
-          tags: ["Reasoning", "Tool use", "Observation"]
-        },
-        {
-          id: "plan-execute",
-          title: "Plan & Execute",
-          summary: "先形成计划，再逐步执行与动态修订。",
-          description: "Plan-and-Execute 把复杂任务拆成多个子任务，由规划器生成步骤，执行器逐项完成，必要时重新规划。它适合步骤较多、依赖关系明显的任务。",
-          points: [
-            "计划应包含可验证的子目标和依赖，而不只是自然语言清单。",
-            "执行后检查前置条件与产物质量，再决定是否进入下一步。",
-            "环境变化或步骤失败时允许局部重规划，避免盲目执行旧计划。"
-          ],
-          tags: ["Planning", "Task decomposition", "Replanning"]
-        },
-        {
-          id: "reflection",
-          title: "Reflection / Critic",
-          summary: "通过检查、反馈和修订提高结果质量。",
-          description: "Reflection 模式让模型或独立检查器评估中间产物，指出缺陷并触发修订。它可以改善复杂输出质量，但必须有明确评判标准，否则容易陷入无效自我循环。",
-          points: [
-            "先定义可检查标准，例如事实依据、格式、覆盖率和约束满足度。",
-            "优先使用确定性校验器检查可程序化的规则。",
-            "限制修订轮次，并记录每轮反馈和质量变化。"
-          ],
-          tags: ["Critic", "Self-correction", "Quality"]
-        },
-        {
-          id: "multi-agent",
-          title: "Multi-Agent",
-          summary: "通过角色分工或任务交接组织多个 Agent。",
-          description: "多 Agent 系统可按专业能力、权限或工作阶段进行拆分。协调器负责路由和汇总，子 Agent 负责有边界的子任务。角色数量不应成为目标，只有在隔离上下文或并行执行能带来可测收益时才值得引入。",
-          points: [
-            "定义每个 Agent 的职责、输入输出 Schema 和可用工具。",
-            "明确协作拓扑：层级委派、顺序交接、并行汇总或群组协作。",
-            "处理冲突、重复劳动、超时、共享状态和最终责任归属。"
-          ],
-          tags: ["Delegation", "Orchestration", "Parallelism"],
-          resources: [{ label: "OpenAI Agents SDK", url: "https://openai.github.io/openai-agents-python/" }]
-        }
-      ]
-    },
-    {
-      id: "tools",
-      title: "工具与执行",
-      summary: "让 Agent 安全、可靠地连接 API、业务系统与执行环境。",
-      description: "工具是 Agent 影响外部世界的接口。工具设计需要清晰的输入输出契约、权限边界、错误语义、幂等策略和可观测性；模型可以选择工具，但执行权限必须由运行时控制。",
-      color: "#2DA58B",
-      tags: ["Function Calling", "MCP", "API"],
-      points: [
-        "工具描述要让模型知道何时调用、需要什么参数以及会产生什么影响。",
-        "在运行时校验参数、身份、权限、速率和副作用。",
-        "把超时、重试、幂等、审计和结果验证纳入工具层。"
-      ],
-      children: [
-        {
-          id: "function-calling",
-          title: "Function Calling",
-          summary: "让模型按工具 Schema 请求执行外部函数。",
-          description: "Function Calling 将工具名称、描述和参数 Schema 提供给模型。模型返回工具调用请求，应用侧负责校验并真正执行，再把结果回传给模型继续处理。",
-          points: [
-            "工具参数使用明确类型、枚举、必填项和合理默认值。",
-            "不要把模型的工具调用请求等同于已经执行成功。",
-            "对写操作增加权限检查、用户确认和幂等键。"
-          ],
-          tags: ["Tools", "JSON Schema", "Execution"],
-          resources: [{ label: "OpenAI Function Calling", url: "https://platform.openai.com/docs/guides/function-calling" }]
-        },
-        {
-          id: "mcp",
-          title: "MCP",
-          summary: "用统一协议连接模型应用与外部工具、资源。",
-          description: "Model Context Protocol（MCP）定义了客户端与服务器之间发现和调用能力的通用方式。它可以降低集成成本，但不会自动解决身份认证、授权、信任和数据治理问题。",
-          points: [
-            "理解 Tools、Resources、Prompts 等核心原语及其适用场景。",
-            "检查服务器来源、权限范围、传输方式和凭证处理。",
-            "对返回内容进行来源标注与不可信输入隔离。"
-          ],
-          tags: ["Model Context Protocol", "Tools", "Resources"],
-          resources: [{ label: "MCP 官方文档", url: "https://modelcontextprotocol.io/introduction" }]
-        },
-        {
-          id: "tool-design",
-          title: "工具设计原则",
-          summary: "设计边界清晰、可组合、可恢复的工具接口。",
-          description: "优秀工具应尽量聚焦单一业务能力，参数语义稳定，输出便于模型理解。复杂业务可以由多个原子工具组成，也可以封装为有明确契约的高层工具。",
-          points: [
-            "工具命名使用动作加对象，描述前置条件和副作用。",
-            "区分可读操作与写操作，避免一个工具承担过多权限。",
-            "返回结构化状态、错误码、资源 ID 和必要的下一步信息。"
-          ],
-          tags: ["API design", "Idempotency", "Error handling"]
-        },
-        {
-          id: "sandbox",
-          title: "执行环境与沙箱",
-          summary: "隔离代码执行、文件访问和网络访问风险。",
-          description: "当 Agent 需要运行代码、访问文件或浏览网页时，应在隔离环境中执行。沙箱要控制文件系统、网络出口、CPU、内存、执行时间和凭证可见范围。",
-          points: [
-            "默认最小权限，按任务动态授予必要的资源访问。",
-            "限制网络目的地、文件路径、进程能力和资源配额。",
-            "执行产物需要扫描、校验，并通过受控通道交付。"
-          ],
-          tags: ["Sandbox", "Isolation", "Runtime security"]
-        }
-      ]
-    },
-    {
-      id: "memory",
-      title: "知识与记忆",
-      summary: "为 Agent 提供可检索的外部知识和跨轮次状态。",
-      description: "模型上下文不是长期数据库。知识检索负责从外部资料中找到依据，记忆负责保留与未来任务相关的信息。两者需要数据治理、更新策略、来源追踪和隐私边界。",
-      color: "#D66E91",
-      tags: ["RAG", "Memory", "Vector Search"],
-      points: [
-        "先判断信息是否需要持久化，再选择短期状态或长期存储。",
-        "检索质量取决于切分、索引、召回、重排和上下文组织。",
-        "记录来源和时间，提供过期、删除与权限过滤机制。"
-      ],
-      children: [
-        {
-          id: "rag",
-          title: "RAG 检索增强生成",
-          summary: "先检索外部知识，再基于证据生成回答。",
-          description: "RAG 将知识库检索接入生成过程。典型链路包括文档解析、切分、向量化、召回、重排、上下文组装和带引用生成。它适合知识频繁变化或需要外部依据的任务。",
-          points: [
-            "建立文档解析、元数据、权限标签和增量更新流程。",
-            "结合关键词检索、向量检索和重排提升召回质量。",
-            "评估检索命中率、答案忠实度、引用准确性和端到端效果。"
-          ],
-          tags: ["Retrieval", "Reranking", "Grounding"],
-          resources: [{ label: "Retrieval Augmented Generation · OpenAI", url: "https://platform.openai.com/docs/guides/retrieval" }]
-        },
-        {
-          id: "memory-types",
-          title: "记忆分层",
-          summary: "区分会话状态、情节记忆与语义记忆。",
-          description: "短期记忆保存当前任务状态和近期交互；情节记忆记录过去发生的事件；语义记忆保存稳定事实、偏好或领域知识。不同记忆类型应使用不同的写入、检索和遗忘策略。",
-          points: [
-            "会话状态服务于当前任务，通常有明确生命周期。",
-            "长期记忆需要判断重要性、可信度、时效性和隐私。",
-            "设计记忆更新、冲突解决、过期和用户纠正机制。"
-          ],
-          tags: ["Short-term", "Episodic", "Semantic"]
-        },
-        {
-          id: "vector-search",
-          title: "向量检索",
-          summary: "用 Embedding 表示语义，并进行相似度召回。",
-          description: "Embedding 将文本或多模态内容映射到向量空间。向量检索可召回语义相近的内容，但不等于理解事实关系，也不保证结果完整或准确。",
-          points: [
-            "根据语料语言、领域和查询类型选择 Embedding 模型。",
-            "合理设计 Chunk 大小、重叠、元数据过滤和索引更新。",
-            "使用混合检索与 Reranker 弥补纯向量召回的不足。"
-          ],
-          tags: ["Embedding", "ANN", "Hybrid Search"]
-        },
-        {
-          id: "knowledge-graph",
-          title: "知识图谱",
-          summary: "用实体、关系和属性组织结构化知识。",
-          description: "知识图谱将实体及其关系显式建模，适合多跳关系查询、实体消歧和结构化约束。它可以与向量检索结合：向量负责语义召回，图结构负责关系扩展和约束。",
-          points: [
-            "定义实体类型、关系类型、唯一标识和数据来源。",
-            "通过实体链接与消歧连接文档、事件和业务数据。",
-            "对关系路径、图查询和图谱更新建立评测。"
-          ],
-          tags: ["Entities", "Relations", "Graph RAG"]
-        }
-      ]
-    },
-    {
-      id: "orchestration",
-      title: "编排与协作",
-      summary: "管理状态、步骤、分支、重试和人机协同。",
-      description: "编排层决定 Agent 何时执行、如何转移状态、失败后如何恢复，以及何时需要人类参与。复杂流程应显式建模状态与转移，避免把全部控制逻辑藏在一个超长提示词中。",
-      color: "#4F9CA8",
-      tags: ["State Machine", "LangGraph", "HITL"],
-      points: [
-        "显式保存任务状态、执行结果、检查点和恢复位置。",
-        "区分模型决策与确定性流程控制，重要转移由代码验证。",
-        "把人工审批作为正式节点，而不是临时补丁。"
-      ],
-      children: [
-        {
-          id: "state-machine",
-          title: "状态机与检查点",
-          summary: "将任务表示为状态、事件和受控转移。",
-          description: "状态机把流程拆为明确状态与转移条件。检查点记录关键状态，使长任务可以暂停、恢复、审计和重试，是可靠 Agent 编排的重要基础。",
-          points: [
-            "定义状态、事件、转移条件、超时和终止状态。",
-            "将外部副作用与状态提交设计为可恢复流程。",
-            "为长任务保存检查点，并验证恢复后的幂等性。"
-          ],
-          tags: ["State", "Checkpoint", "Recovery"]
-        },
-        {
-          id: "langgraph",
-          title: "图式编排框架",
-          summary: "通过节点与边描述有状态的 Agent 工作流。",
-          description: "图式编排将模型调用、工具执行、条件分支和人工审核组织为有向图。以 LangGraph 为例，节点负责执行逻辑，边负责路由，状态在节点间传递，并可配合持久化与检查点。",
-          points: [
-            "节点应职责单一，输入输出围绕共享状态定义。",
-            "条件边处理路由，循环边处理迭代，终止边处理完成。",
-            "框架负责编排，不替代业务校验、权限和可观测性。"
-          ],
-          tags: ["Graph", "Stateful workflow", "LangGraph"],
-          resources: [{ label: "LangGraph 文档", url: "https://docs.langchain.com/oss/python/langgraph/overview" }]
-        },
-        {
-          id: "handoff",
-          title: "Agent Handoff",
-          summary: "将任务或控制权交接给更合适的 Agent。",
-          description: "Handoff 是把当前任务交给另一个具备合适职责或工具权限的 Agent。交接时必须传递目标、必要上下文、已完成工作和未解决问题，并明确谁负责最终答复。",
-          points: [
-            "明确交接条件、目标 Agent 和允许访问的上下文。",
-            "避免多个 Agent 同时修改同一状态而产生竞争。",
-            "记录交接链路，设置最大跳数和循环检测。"
-          ],
-          tags: ["Delegation", "Routing", "Ownership"]
-        },
-        {
-          id: "human-in-loop",
-          title: "Human-in-the-loop",
-          summary: "在关键决策或高风险操作前引入人工确认。",
-          description: "Human-in-the-loop 将人类审核嵌入执行流程。系统需要展示足够的上下文、拟执行动作、影响范围和风险，并提供批准、修改、拒绝与超时处理。",
-          points: [
-            "为付款、外发、删除、权限变更等动作设置确认门槛。",
-            "审批内容应绑定具体参数和版本，防止确认后被悄悄修改。",
-            "保存审批人、时间、决定和后续执行结果。"
-          ],
-          tags: ["Approval", "Escalation", "Audit"]
-        }
-      ]
-    },
-    {
-      id: "evaluation",
-      title: "评估与可观测性",
-      summary: "用数据验证 Agent 是否有效，并定位失败原因。",
-      description: "Agent 具有非确定性和多步骤执行特征，单看最终答案不足以评估质量。需要覆盖任务结果、工具行为、过程轨迹、成本、延迟和安全边界，并持续回归测试。",
-      color: "#7D88A7",
-      tags: ["Evals", "Tracing", "Observability"],
-      points: [
-        "建立代表性数据集和明确评分标准，避免只依赖主观体验。",
-        "记录每一步输入输出、工具调用、耗时、Token 和异常。",
-        "将线上失败转化为测试样本，形成持续改进闭环。"
-      ],
-      children: [
-        {
-          id: "agent-evals",
-          title: "Agent Evals",
-          summary: "评估任务成功率、过程质量与约束满足度。",
-          description: "Agent 评估需要同时看最终结果和执行过程。除人工评审外，可以使用规则校验、标准答案、模拟环境和模型辅助评分，但评分器本身也需要校准。",
-          points: [
-            "按任务类型建立数据集，覆盖正常、边界和对抗样本。",
-            "评估任务完成率、事实准确率、工具选择和参数正确率。",
-            "对评分结果抽样人工复核，监控评估器偏差。"
-          ],
-          tags: ["Dataset", "Success rate", "LLM-as-judge"]
-        },
-        {
-          id: "tracing",
-          title: "Tracing 与调试",
-          summary: "追踪每轮模型调用、工具执行和状态变化。",
-          description: "Tracing 将一次任务拆成可关联的 Span，记录模型请求、工具调用、检索、重试和交接。完整轨迹可以解释失败发生在哪一步，并支持性能分析和复现。",
-          points: [
-            "为任务、会话、模型调用和工具执行分配关联 ID。",
-            "记录耗时、输入输出摘要、Token、异常和重试次数。",
-            "对敏感字段脱敏，设置日志保留期限与访问权限。"
-          ],
-          tags: ["Trace", "Span", "Debugging"]
-        },
-        {
-          id: "metrics",
-          title: "质量与运行指标",
-          summary: "从效果、性能、成本和安全多个维度观测。",
-          description: "运行指标要能对应真实业务目标。除任务成功率外，还要监控延迟分位数、工具失败率、人工接管率、Token 成本、重复循环和策略拦截情况。",
-          points: [
-            "效果：完成率、用户采纳率、事实错误率和返工率。",
-            "性能：P50/P95 延迟、吞吐量、超时率和队列等待。",
-            "成本与安全：单任务成本、工具调用量、拒绝率和越权拦截。"
-          ],
-          tags: ["SLO", "Latency", "Cost", "Safety"]
-        },
-        {
-          id: "regression",
-          title: "回归测试与发布",
-          summary: "将提示词、模型和工具变更纳入质量门禁。",
-          description: "Agent 的行为可能随模型版本、提示词、工具 Schema 和知识库变化而改变。发布前应在固定数据集和模拟环境中进行回归，并对线上流量逐步放量。",
-          points: [
-            "为关键任务保留固定测试集和基准结果。",
-            "比较版本间成功率、成本、延迟和安全指标变化。",
-            "使用灰度发布、快速回滚和线上异常采样。"
-          ],
-          tags: ["Regression", "CI", "Release"]
-        }
-      ]
-    },
-    {
-      id: "security",
-      title: "安全与工程化",
-      summary: "控制提示注入、权限、数据泄露与生产运行风险。",
-      description: "Agent 会读取不可信内容并调用具有真实权限的工具，因此安全边界必须由系统架构保证。模型提示词只能提供行为引导，不能替代身份认证、授权、隔离和审计。",
-      color: "#B97955",
-      tags: ["Security", "Deployment", "Governance"],
-      points: [
-        "把用户输入、检索文档、网页内容和工具返回都视为潜在不可信数据。",
-        "采用最小权限、明确授权、隔离执行和人工审批。",
-        "生产环境需要限流、熔断、审计、密钥管理和成本预算。"
-      ],
-      children: [
-        {
-          id: "prompt-injection",
-          title: "Prompt Injection",
-          summary: "识别并隔离试图改变 Agent 行为的恶意内容。",
-          description: "提示注入可能来自用户消息、网页、邮件、文档或工具结果。攻击者试图让模型忽略原有指令、泄露信息或调用不当工具。仅靠提示词要求模型忽略攻击并不足够。",
-          points: [
-            "区分可信指令与不可信数据，避免把检索内容提升为系统指令。",
-            "工具权限由运行时强制执行，不让模型自行扩大权限。",
-            "对外发、下载、执行代码等敏感动作设置独立策略和确认。"
-          ],
-          tags: ["Indirect injection", "Trust boundary", "Defense"],
-          resources: [{ label: "OWASP Top 10 for LLM Applications", url: "https://genai.owasp.org/llm-top-10/" }]
-        },
-        {
-          id: "permissions",
-          title: "身份与权限控制",
-          summary: "将用户身份、Agent 身份与工具权限绑定。",
-          description: "授权应基于当前用户、任务目的和资源范围进行判断。不要让所有 Agent 共用一个拥有广泛权限的服务账号，也不要将长期凭证直接暴露给模型上下文。",
-          points: [
-            "使用最小权限与短期凭证，按需授权并定期轮换。",
-            "服务端对每次工具调用重新检查身份、资源和操作权限。",
-            "为敏感数据设置租户隔离、字段级访问控制和审计记录。"
-          ],
-          tags: ["IAM", "Least privilege", "Secrets"]
-        },
-        {
-          id: "deployment",
-          title: "部署与可靠性",
-          summary: "为 Agent 服务建立可扩展、可恢复的生产运行环境。",
-          description: "生产 Agent 通常需要 API 服务、异步任务队列、状态存储、检索服务、模型网关和观测系统。长任务应异步化，并具备超时、重试、取消和恢复能力。",
-          points: [
-            "分离请求接入、任务执行、状态存储和工具适配层。",
-            "对模型与外部 API 设置超时、限流、重试和熔断。",
-            "支持任务取消、断点恢复、版本追踪和快速回滚。"
-          ],
-          tags: ["Runtime", "Queue", "Resilience"]
-        },
-        {
-          id: "cost-control",
-          title: "成本与资源治理",
-          summary: "控制模型调用、工具执行和长任务的资源消耗。",
-          description: "Agent 可能因循环、重复检索或过度规划产生不可预测的成本。应在任务级别设置预算，并通过模型路由、缓存、上下文压缩和工具合并优化资源使用。",
-          points: [
-            "设置 Token、模型调用次数、工具次数、时间和并发上限。",
-            "监控单任务成本分布，定位高成本路径与重复调用。",
-            "为超预算任务定义降级、暂停、转人工或终止策略。"
-          ],
-          tags: ["Budget", "Caching", "Rate limit"]
-        }
-      ]
-    }
-  ]
+type NodeOptions = {
+  tags?: string[];
+  color?: string;
+  resources?: KnowledgeResource[];
+  children?: KnowledgeItem[];
 };
+
+type TechSpec = {
+  id: string;
+  title: string;
+  summary: string;
+  description: string;
+  tags?: string[];
+  resources?: KnowledgeResource[];
+  points?: string[];
+};
+
+const node = (
+  id: string,
+  title: string,
+  summary: string,
+  description: string,
+  points: string[],
+  options: NodeOptions = {}
+): KnowledgeItem => ({
+  id, title, summary, description, points,
+  ...(options.tags ? { tags: options.tags } : {}),
+  ...(options.color ? { color: options.color } : {}),
+  ...(options.resources ? { resources: options.resources } : {}),
+  ...(options.children ? { children: options.children } : {})
+});
+
+const tech = (spec: TechSpec): KnowledgeItem => node(
+  spec.id,
+  spec.title,
+  spec.summary,
+  spec.description,
+  spec.points ?? [
+    "核心机制：" + spec.summary,
+    "实现关注点：" + spec.description
+  ],
+  { tags: spec.tags, resources: spec.resources }
+);
+
+const capability = (
+  id: string,
+  title: string,
+  summary: string,
+  description: string,
+  implementations: TechSpec[],
+  tags: string[] = []
+): KnowledgeItem => node(
+  id, title, summary, description,
+  [
+    "能力边界：" + summary,
+    "设计原则：" + description
+  ],
+  { tags, children: implementations.map(tech) }
+);
+
+const moduleNode = (
+  id: string,
+  title: string,
+  summary: string,
+  description: string,
+  color: string,
+  tags: string[],
+  capabilities: KnowledgeItem[]
+): KnowledgeItem => node(
+  id, title, summary, description,
+  [
+    "模块职责：" + summary,
+    "架构原则：" + description
+  ],
+  { color, tags, children: capabilities }
+);
+
+export const knowledgeTree: KnowledgeItem = node(
+  "agent-root",
+  "Agent 系统",
+  "由感知、推理、记忆、知识、工具和运行治理等模块组成的目标驱动系统。",
+  "Agent 不是单一的大模型调用，而是一套围绕目标持续运行的软件系统。它接收输入、理解环境、组织上下文、进行推理规划、调用工具、读写记忆，并通过评估和反馈持续修正行为。知识图谱按照 Agent 的功能模块组织知识，每个模块继续拆分为内部能力与可落地的技术实现。",
+  [
+    "二级节点代表 Agent 的功能模块，回答系统由什么组成。",
+    "三级节点代表模块内部能力，回答每个模块需要完成什么工作。",
+    "四级节点代表具体技术实现，回答工程上可以用什么方法和组件落地。"
+  ],
+  {
+    tags: ["Agent Architecture", "Modules", "Capabilities", "Implementations"],
+    children: [
+      moduleNode(
+        "perception",
+        "感知与输入 Perception",
+        "接收用户请求和环境信号，将多模态输入转化为可处理的结构化信息。",
+        "感知模块负责把外部世界转换为 Agent 可理解的状态。它覆盖文本、多模态内容、用户意图以及浏览器、业务系统和实时事件等环境观察。",
+        "#4E83E6",
+        ["Input", "Intent", "Observation"],
+        [
+          capability(
+            "input-normalization",
+            "输入解析与标准化",
+            "将文本、文件和多模态载荷转换为统一输入结构。",
+            "统一消息角色、渠道、附件、时间戳和模态信息，避免后续模块直接处理来源各异的原始载荷。",
+            [
+              { id: "message-parser", title: "Message Parser", summary: "解析消息角色、渠道、正文与附件。", description: "定义统一的 Message / ContentPart 数据结构，解析 user、assistant、tool 等角色以及文本、文件和引用片段。", tags: ["Message schema", "Parser"] },
+              { id: "multimodal-adapter", title: "Multimodal Adapter", summary: "接入图像、音频、视频和文档输入。", description: "按模型能力将图像转为视觉输入，将音频转为转写或音频 Token，将视频抽帧，并将文档交给解析流水线。", tags: ["Vision", "Audio", "Video"] },
+              { id: "input-schema-validation", title: "Schema Validation", summary: "用类型与 Schema 校验输入结构。", description: "使用 Zod、Pydantic 或 JSON Schema 校验字段、枚举、文件大小和必填项，在进入 Agent 循环前拒绝非法输入。", tags: ["Zod", "Pydantic", "JSON Schema"] }
+            ],
+            ["Parsing", "Normalization"]
+          ),
+          capability(
+            "intent-understanding",
+            "意图理解与路由",
+            "识别用户目标、实体和任务类型，决定后续处理路径。",
+            "将自然语言请求转成可路由的意图与槽位。简单场景可以使用规则或分类器，开放式请求可使用 LLM 结构化抽取。",
+            [
+              { id: "intent-classifier", title: "Intent Classifier", summary: "识别任务类别与用户意图。", description: "通过规则、传统分类模型或 LLM 分类，将输入映射到稳定的意图标签，并为低置信度结果设置澄清路径。", tags: ["Classification", "Routing"] },
+              { id: "entity-slot-extraction", title: "Entity / Slot Extraction", summary: "抽取人物、时间、地点和任务参数。", description: "使用 NER、槽位填充或结构化 LLM 抽取实体与参数，并保留原文位置、置信度和规范化结果。", tags: ["NER", "Slot Filling", "Extraction"] },
+              { id: "semantic-router", title: "Semantic Router", summary: "按语义将请求分配给 Agent 或工作流。", description: "使用 Embedding 相似度、轻量分类器或 LLM Router 选择目标模块，并设置阈值、默认路由和人工澄清策略。", tags: ["Embedding", "LLM Router"] }
+            ],
+            ["Intent", "Entity", "Routing"]
+          ),
+          capability(
+            "environment-observation",
+            "环境观察",
+            "持续读取 Agent 所处环境的状态与变化。",
+            "Agent 的决策必须基于当前环境，而不是过期的假设。观察层将网页、应用状态和外部事件整理成有时间戳的状态快照。",
+            [
+              { id: "browser-dom-snapshot", title: "DOM / Accessibility Snapshot", summary: "读取网页 DOM 和无障碍树。", description: "通过 Playwright、浏览器调试协议或计算机使用环境获取页面结构、可访问名称、可交互元素和当前 URL。", tags: ["Playwright", "DOM", "Accessibility"] },
+              { id: "event-webhook", title: "Event / Webhook Listener", summary: "通过事件推送感知外部系统变化。", description: "接收 Webhook、消息队列事件和业务通知，为事件增加来源、签名验证、去重键和发生时间。", tags: ["Webhook", "Event-driven"] },
+              { id: "polling-observer", title: "Polling Observer", summary: "定时轮询 API 或环境状态。", description: "使用定时任务读取外部 API、设备或业务系统状态，配置轮询间隔、退避、变化检测和速率限制。", tags: ["Polling", "Scheduler"] }
+            ],
+            ["Environment", "Events", "Browser"]
+          )
+        ]
+      ),
+      moduleNode(
+        "reasoning-planning",
+        "推理与规划 Reasoning",
+        "理解目标、拆解任务、选择行动，并根据结果修订计划。",
+        "推理与规划模块负责决定 Agent 下一步应该做什么。它将复杂目标拆成可验证的子任务，选择推理模式，并在环境变化或执行失败时重新规划。",
+        "#8A6BD8",
+        ["Reasoning", "Planning", "Reflection"],
+        [
+          capability(
+            "task-decomposition",
+            "任务拆解 Task Decomposition",
+            "将复杂目标拆分为有依赖关系的子任务。",
+            "拆解结果应具备明确的完成条件、依赖和执行顺序，避免只生成无法验证的自然语言计划。",
+            [
+              { id: "llm-planner", title: "LLM Planner", summary: "让模型生成结构化任务计划。", description: "使用结构化输出生成子任务、前置条件、预期产物和完成标准，并对计划进行 Schema 与业务校验。", tags: ["LLM", "Structured Plan"] },
+              { id: "dag-planner", title: "DAG Planner", summary: "用有向无环图表达任务依赖。", description: "将任务建模为 DAG，明确可并行节点、依赖边和关键路径，适合多步骤研究、数据处理和工程任务。", tags: ["DAG", "Parallel Tasks"] },
+              { id: "hierarchical-task-network", title: "Hierarchical Task Network", summary: "通过任务层级和方法分解复杂目标。", description: "使用 HTN 将高层任务映射为可执行子任务和方法，适用于领域规则明确、流程可复用的任务。", tags: ["HTN", "Planning"] }
+            ],
+            ["Decomposition", "Dependencies"]
+          ),
+          capability(
+            "reasoning-strategy",
+            "推理与行动策略",
+            "根据任务特征选择逐步推理、计划执行或工具辅助推理。",
+            "不同任务不应强行使用同一种推理模式。策略层决定何时继续思考、何时调用工具、何时停止，以及何时需要补充信息。",
+            [
+              { id: "react", title: "ReAct", summary: "交替执行推理、工具行动与观察。", description: "在模型决策和工具反馈之间循环，将每次行动的观察结果加入下一轮上下文，并设置最大步数与停止条件。", tags: ["Reasoning", "Act", "Observe"] },
+              { id: "plan-and-execute", title: "Plan-and-Execute", summary: "先规划，再按步骤执行和修订。", description: "由 Planner 生成计划，Executor 执行子任务，Verifier 检查产物；当依赖或环境发生变化时触发局部重规划。", tags: ["Planner", "Executor"] },
+              { id: "tool-assisted-reasoning", title: "Tool-assisted Reasoning", summary: "借助搜索、计算和代码执行解决问题。", description: "将事实查询、精确计算和可验证操作交给外部工具，模型负责选择工具、解释结果和整合证据。", tags: ["Search", "Code", "Calculator"] }
+            ],
+            ["ReAct", "Planning", "Tool Use"]
+          ),
+          capability(
+            "reflection-verification",
+            "反思与结果验证",
+            "检查中间结果和最终产物，识别错误并触发修订。",
+            "反思应建立在可观察的评价标准上。能用代码判断的内容优先使用确定性校验，开放式质量问题再使用模型评审。",
+            [
+              { id: "llm-critic", title: "LLM Critic", summary: "使用独立评审提示词检查结果质量。", description: "让评审器按事实、完整性、格式和任务约束逐项给出结构化问题，避免只输出笼统的好坏评价。", tags: ["Critic", "LLM-as-Judge"] },
+              { id: "rule-validator", title: "Rule-based Validator", summary: "用确定性规则校验输出和业务约束。", description: "使用 Schema、正则、业务规则和权限检查验证字段、数值、引用和操作参数，失败时返回可定位的错误。", tags: ["Validation", "Rules"] },
+              { id: "execution-verifier", title: "Execution Verifier", summary: "通过测试或环境状态确认行动是否成功。", description: "对工具调用结果执行后置检查，例如查询资源是否创建、文件是否存在、测试是否通过，而不是仅相信工具返回文本。", tags: ["Postcondition", "Testing"] }
+            ],
+            ["Reflection", "Verification", "Correction"]
+          ),
+          capability(
+            "self-improvement",
+            "自我改进 Self-improvement",
+            "利用评估和历史反馈持续优化提示词、策略与工作流。",
+            "自我改进需要明确目标函数、可复现的数据集和安全边界。优化对象可以是 Prompt、工具选择策略或工作流配置，不应允许 Agent 未经验证地修改生产权限和核心代码。",
+            [
+              { id: "prompt-optimizer", title: "Prompt Optimizer", summary: "根据评测结果自动优化提示词。", description: "使用 DSPy 等优化方法，在固定训练与验证样本上搜索指令和示例，比较优化前后的任务指标并保留版本。", tags: ["DSPy", "Prompt Optimization"], resources: [{ label: "DSPy Documentation", url: "https://dspy.ai/" }] },
+              { id: "feedback-dataset", title: "Feedback Dataset", summary: "将用户反馈和失败轨迹沉淀为改进样本。", description: "采集人工纠错、任务失败和用户评分，进行脱敏、标注和去重，形成可回归的数据集。", tags: ["Feedback", "Dataset", "Evals"] },
+              { id: "optimization-loop", title: "Optimization Loop", summary: "执行候选生成、评估、选择和版本回滚。", description: "建立 Generate → Evaluate → Select → Deploy 的受控循环，要求候选版本通过离线评测、灰度和安全门禁后才能生效。", tags: ["Optimization", "Regression", "Guardrails"] }
+            ],
+            ["Learning Loop", "Optimization", "Feedback"]
+          )
+        ]
+      ),
+      moduleNode(
+        "memory",
+        "记忆 Memory",
+        "提取、存储、检索、更新和遗忘 Agent 运行过程中有价值的信息。",
+        "Memory 负责跨轮次保留与未来任务相关的信息。它与 RAG 知识库不同：记忆更关注用户、会话、任务经历和动态状态；需要管理写入质量、检索相关性、冲突解决、时效性和删除权。",
+        "#D66E91",
+        ["Memory", "Episodic", "Semantic", "Lifecycle"],
+        [
+          capability(
+            "memory-extraction",
+            "记忆提取 Memory Extraction",
+            "从对话、任务轨迹和环境反馈中识别值得长期保留的信息。",
+            "提取阶段要区分事实、偏好、事件、任务状态和推测，保留来源与置信度，并避免把临时内容或敏感信息无条件写入长期记忆。",
+            [
+              { id: "llm-memory-extraction", title: "LLM Structured Extraction", summary: "通过 LLM 将对话转成结构化记忆。", description: "定义 Memory Schema，让模型抽取内容、类型、实体、时间、来源和置信度，并通过 JSON Schema 校验。", tags: ["LLM", "JSON Schema", "Extraction"] },
+              { id: "memory-ner", title: "Entity Extraction / NER", summary: "识别人名、组织、项目和实体关系。", description: "使用 NER、实体链接和规范化规则识别实体，将不同称呼映射到统一 ID，并保留原始文本证据。", tags: ["NER", "Entity Linking"] },
+              { id: "event-extraction", title: "Event Extraction", summary: "抽取事件、参与者、时间和结果。", description: "将任务经历表示为事件记录，包含主体、动作、对象、时间、结果和上下文，支持后续情节记忆检索。", tags: ["Event", "Episodic Memory"] },
+              { id: "preference-extraction", title: "Preference Extraction", summary: "识别稳定偏好、习惯和用户明确要求。", description: "区分明确表达与模型推断，记录偏好适用范围、置信度和最后确认时间，并提供用户纠正入口。", tags: ["User Preference", "Profile"] }
+            ],
+            ["Extraction", "NER", "Events"]
+          ),
+          capability(
+            "memory-storage",
+            "记忆存储 Memory Storage",
+            "根据记忆类型选择合适的数据结构和持久化介质。",
+            "不要把所有记忆都塞进向量数据库。会话状态、结构化事实、语义片段和实体关系具有不同查询模式，应采用适合的数据模型并保留用户、租户和来源元数据。",
+            [
+              { id: "session-store", title: "Session Store · Redis", summary: "保存短期会话状态和高频上下文。", description: "使用 Redis Hash、JSON 或 TTL Key 保存会话状态、临时变量和短期缓存，设置过期策略并避免把唯一长期副本放在缓存中。", tags: ["Redis", "TTL", "Short-term"] },
+              { id: "relational-memory-store", title: "Relational Store · PostgreSQL", summary: "保存结构化事实、偏好和任务记录。", description: "使用 PostgreSQL 表、JSONB、索引和事务保存有明确字段与一致性要求的记忆，适合按用户、时间和类型过滤。", tags: ["PostgreSQL", "SQL", "JSONB"] },
+              { id: "vector-memory-store", title: "Vector Store · pgvector / Qdrant", summary: "保存语义片段和 Embedding 向量。", description: "为记忆内容生成 Embedding，存储向量与 metadata，支持相似度检索、用户隔离、过滤和索引更新。", tags: ["pgvector", "Qdrant", "Embedding"] },
+              { id: "graph-memory-store", title: "Graph Store · Neo4j", summary: "保存实体及其关系和多跳连接。", description: "将人物、项目、事件建模为节点，将参与、拥有、依赖等关系建模为边，适合关系查询、实体消歧和关联推理。", tags: ["Neo4j", "Knowledge Graph"] }
+            ],
+            ["Redis", "PostgreSQL", "Vector DB", "Graph DB"]
+          ),
+          capability(
+            "memory-retrieval",
+            "记忆检索 Memory Retrieval",
+            "根据当前任务召回最相关、可信且仍然有效的记忆。",
+            "记忆召回应结合语义相关性、时间、重要性、用户权限和记忆类型。检索结果应返回来源与更新时间，避免过期记忆被当作当前事实。",
+            [
+              { id: "semantic-memory-search", title: "Semantic Vector Search", summary: "通过向量相似度召回语义相关记忆。", description: "使用 Embedding 将查询与记忆映射到向量空间，采用 cosine、dot product 或 ANN 索引召回候选。", tags: ["Embedding", "ANN", "Vector Search"] },
+              { id: "keyword-memory-search", title: "Keyword Search · BM25", summary: "按关键词和词项相关性检索记忆。", description: "使用 BM25、倒排索引或全文搜索召回专有名词、编号和精确术语，弥补向量检索对精确词项不敏感的问题。", tags: ["BM25", "Full-text Search"] },
+              { id: "hybrid-memory-search", title: "Hybrid Retrieval", summary: "融合关键词召回与向量召回。", description: "结合稀疏检索和稠密检索，通过 RRF 或归一化分数融合候选，再进行权限和时间过滤。", tags: ["Hybrid Search", "RRF"] },
+              { id: "memory-reranker", title: "Memory Reranker", summary: "对候选记忆进行相关性重排。", description: "使用 Cross-Encoder 或 LLM Reranker 对查询与候选记忆进行联合打分，并限制最终注入上下文的数量和 Token 预算。", tags: ["Reranker", "Cross-Encoder"] }
+            ],
+            ["Vector Search", "BM25", "Hybrid", "Reranking"]
+          ),
+          capability(
+            "memory-consolidation",
+            "记忆更新与整合 Memory Consolidation",
+            "合并重复信息，解决冲突，并将零散经历整理成稳定知识。",
+            "记忆不是只增不减的日志。系统应周期性整理候选记忆，识别重复和矛盾，保留时间变化与来源证据，并避免将一次性事件错误固化为长期事实。",
+            [
+              { id: "memory-summarization", title: "Memory Summarization", summary: "将长对话和任务轨迹压缩为摘要。", description: "按会话或主题生成滚动摘要，保留目标、决策、关键事实、未完成事项和引用来源。", tags: ["Summarization", "Compression"] },
+              { id: "memory-deduplication", title: "Deduplication", summary: "识别并合并重复记忆。", description: "使用规范化键、实体 ID、文本相似度和时间窗口识别重复记录，合并时保留原始来源和更新时间。", tags: ["Deduplication", "Canonicalization"] },
+              { id: "memory-conflict-resolution", title: "Conflict Resolution", summary: "处理新旧记忆之间的矛盾。", description: "按来源可信度、时间、用户确认和适用范围解决冲突；无法判定时保留多版本或请求用户确认。", tags: ["Conflict Resolution", "Provenance"] },
+              { id: "entity-resolution", title: "Entity Resolution", summary: "把不同名称映射到同一实体。", description: "结合别名表、规则、Embedding 和上下文判断实体是否相同，维护稳定 ID 与关系更新。", tags: ["Entity Linking", "Knowledge Graph"] }
+            ],
+            ["Summarization", "Deduplication", "Conflict"]
+          ),
+          capability(
+            "memory-lifecycle",
+            "记忆生命周期 Memory Lifecycle",
+            "控制记忆何时保留、衰减、过期和删除。",
+            "记忆生命周期策略决定哪些信息值得长期保留。需要同时支持自动过期、重要性衰减、用户查看和删除，以及隐私和租户隔离要求。",
+            [
+              { id: "memory-ttl", title: "TTL / Expiration", summary: "为临时记忆设置过期时间。", description: "为会话状态、短期事实和临时授权设置 TTL，使用 Redis TTL、数据库清理任务或生命周期策略自动清除。", tags: ["TTL", "Expiration"] },
+              { id: "memory-decay", title: "Importance Decay", summary: "根据时间和使用频率调整记忆权重。", description: "结合时间衰减、访问频率、重要性和用户确认更新检索分数，降低陈旧信息的优先级。", tags: ["Decay", "Importance", "Recency"] },
+              { id: "memory-forgetting", title: "Forgetting Policy", summary: "按规则淘汰低价值或过期记忆。", description: "定义容量上限、淘汰优先级和保护规则，确保关键事实、审计记录和用户明确保留的信息不会被随意清除。", tags: ["Forgetting", "Retention"] },
+              { id: "memory-user-controls", title: "User Correction & Deletion", summary: "允许用户查看、纠正和删除记忆。", description: "提供记忆来源、修改记录和删除接口，并同步清理缓存、向量索引和派生摘要，防止删除后又被重新召回。", tags: ["Privacy", "User Control", "Deletion"] }
+            ],
+            ["TTL", "Forgetting", "Privacy"]
+          )
+        ]
+      ),
+      moduleNode(
+        "knowledge-rag",
+        "知识检索 Knowledge / RAG",
+        "将外部文档和领域知识转化为可检索、可引用的证据。",
+        "知识模块主要处理外部、相对稳定或规模较大的资料库；与 Memory 的个人经历和会话状态区分。核心链路是数据接入、解析切分、索引、召回、重排和基于证据生成。",
+        "#D99445",
+        ["RAG", "Indexing", "Grounding"],
+        [
+          capability(
+            "document-ingestion",
+            "文档接入与解析 Ingestion",
+            "接入多种来源的知识内容，并提取正文与元数据。",
+            "文档解析质量决定后续检索上限。接入流程需要保留文件来源、权限、版本和更新时间，并处理扫描件、表格和复杂布局。",
+            [
+              { id: "document-loaders", title: "Document Loaders", summary: "接入网页、PDF、Office 和数据源。", description: "通过文件解析器、网页抓取器和连接器统一加载文档，记录 source_id、版本、权限和更新时间。", tags: ["PDF", "HTML", "Connectors"] },
+              { id: "ocr-layout-parser", title: "OCR / Layout Parser", summary: "解析扫描件、图片和复杂版面。", description: "使用 OCR、版面检测和表格识别恢复标题层级、段落、表格单元格和阅读顺序。", tags: ["OCR", "Layout", "Tables"] },
+              { id: "metadata-enrichment", title: "Metadata Enrichment", summary: "补充文档类型、主题、作者和权限元数据。", description: "通过规则或模型生成分类、实体、时间和访问标签，元数据应可追溯并能被权限过滤使用。", tags: ["Metadata", "Classification"] }
+            ],
+            ["Loaders", "Parsing", "Metadata"]
+          ),
+          capability(
+            "chunking-indexing",
+            "切分与索引 Chunking & Indexing",
+            "将文档转换为适合召回的片段和索引结构。",
+            "Chunk 策略需要在语义完整性、召回粒度和上下文成本之间平衡。索引构建还要考虑增量更新、版本替换和删除传播。",
+            [
+              { id: "recursive-chunking", title: "Recursive Character Splitter", summary: "按标题、段落和分隔符递归切分。", description: "先按大结构切分，再逐级使用段落和句子分隔符，配置 chunk_size 与 overlap，尽量保留自然语义边界。", tags: ["Chunking", "Overlap"] },
+              { id: "semantic-chunking", title: "Semantic Chunking", summary: "根据语义变化决定片段边界。", description: "计算相邻句子的 Embedding 差异，在主题变化处切分，适合语义连续性比固定长度更重要的知识库。", tags: ["Semantic", "Embedding"] },
+              { id: "embedding-model", title: "Embedding Model", summary: "将文本片段编码为向量。", description: "选择适合语料语言和领域的 Embedding 模型，统一查询与文档的向量空间，并管理模型版本和重建索引。", tags: ["Embedding", "Vectorization"] },
+              { id: "vector-index", title: "Vector Index", summary: "建立向量近邻索引以支持快速召回。", description: "使用 HNSW、IVF 等 ANN 索引结构，并根据数据规模、过滤需求、召回率和延迟调整参数。", tags: ["HNSW", "IVF", "ANN"] }
+            ],
+            ["Chunking", "Embedding", "Vector Index"]
+          ),
+          capability(
+            "knowledge-retrieval",
+            "知识召回与重排 Retrieval",
+            "从知识库中找出与当前问题最相关的证据片段。",
+            "召回层应结合问题类型选择检索方式，并在候选集合上执行过滤和重排。检索效果要通过独立数据集评估，而不是只看生成答案是否流畅。",
+            [
+              { id: "dense-retrieval", title: "Dense Retrieval", summary: "使用向量相似度进行语义召回。", description: "将 Query 编码为向量，使用 ANN 在向量索引中查找语义相近的文档片段。", tags: ["Dense", "Vector Search"] },
+              { id: "sparse-retrieval", title: "Sparse Retrieval · BM25", summary: "使用关键词倒排索引进行精确召回。", description: "使用 BM25 或全文索引处理专有名词、错误码、编号和精确术语查询。", tags: ["Sparse", "BM25"] },
+              { id: "hybrid-rag", title: "Hybrid Retrieval", summary: "融合 Dense 与 Sparse 的召回结果。", description: "使用 Reciprocal Rank Fusion 或分数归一化融合两类候选，提升不同查询类型下的召回覆盖率。", tags: ["Hybrid", "RRF"] },
+              { id: "cross-encoder-reranking", title: "Cross-Encoder Reranking", summary: "对 Query 与候选文档进行联合相关性打分。", description: "使用 Cross-Encoder 或专用 Reranker 重排初始候选，截取高相关证据并控制推理成本。", tags: ["Cross-Encoder", "Reranker"] },
+              { id: "graph-retrieval", title: "Graph Retrieval", summary: "沿实体关系扩展多跳证据。", description: "通过实体链接和图查询检索关联实体、事件和关系，适合需要跨文档关系推理的问题。", tags: ["Graph RAG", "Neo4j"] }
+            ],
+            ["Dense", "Sparse", "Hybrid", "Reranking"]
+          ),
+          capability(
+            "grounded-generation",
+            "证据组织与生成 Grounding",
+            "将检索证据组织为上下文，并生成可追溯的答案。",
+            "生成阶段应区分证据与模型推断，对关键结论保留引用，并在证据不足时明确说明不确定性。",
+            [
+              { id: "citation-attribution", title: "Citation Attribution", summary: "为答案中的结论绑定来源片段。", description: "为每个 Chunk 保存文档 ID、页码、段落和 URL，生成时要求引用能够回链到具体来源。", tags: ["Citation", "Provenance"] },
+              { id: "evidence-filter", title: "Evidence Filtering", summary: "过滤低相关、冲突或越权的检索结果。", description: "按相关性、来源可信度、时间和用户权限过滤候选，避免把无关或不可访问内容注入上下文。", tags: ["Relevance", "ACL", "Trust"] },
+              { id: "grounded-answer-validator", title: "Grounded Answer Validator", summary: "检查回答是否得到证据支持。", description: "使用规则或评审模型检查引用覆盖、事实忠实度和无依据陈述，对证据不足的问题触发补检索或拒答。", tags: ["Faithfulness", "Evaluation"] }
+            ],
+            ["Grounding", "Citation", "Faithfulness"]
+          )
+        ]
+      ),
+      moduleNode(
+        "tools-actions",
+        "工具与行动 Tools",
+        "发现、选择和执行工具，让 Agent 能够安全地影响外部系统。",
+        "工具模块是 Agent 与外部世界交互的执行层。模型可以提出工具调用意图，但参数校验、身份授权、实际执行、副作用控制和结果确认必须由运行时负责。",
+        "#2DA58B",
+        ["Function Calling", "MCP", "Execution"],
+        [
+          capability(
+            "tool-definition",
+            "工具定义与契约 Tool Definition",
+            "把外部能力封装为模型可理解、程序可校验的工具接口。",
+            "工具描述应明确用途、参数、返回值、副作用和失败语义。工具越清晰，模型越容易正确选择和组合。",
+            [
+              { id: "function-schema", title: "Function Calling Schema", summary: "用 JSON Schema 定义工具参数。", description: "声明工具名称、用途、必填参数、类型和枚举，使用严格 Schema 减少参数歧义。", tags: ["Function Calling", "JSON Schema"] },
+              { id: "typed-tool-contract", title: "Pydantic / Zod Contract", summary: "用类型系统校验输入和输出。", description: "在服务端用 Pydantic 或 Zod 对工具参数、业务约束和返回结构进行运行时校验。", tags: ["Pydantic", "Zod", "Type Safety"] },
+              { id: "openapi-tool-generation", title: "OpenAPI Tool Generation", summary: "从 API 描述生成工具定义。", description: "从 OpenAPI 文档读取 endpoint、参数和认证要求，生成工具包装层并补充面向模型的语义描述。", tags: ["OpenAPI", "API Schema"] }
+            ],
+            ["Schema", "Contract", "Type Safety"]
+          ),
+          capability(
+            "tool-discovery-routing",
+            "工具发现与选择 Tool Routing",
+            "根据任务目标选择合适工具，并管理可用工具集合。",
+            "工具选择需要结合模型判断、规则约束和当前身份权限。大量工具场景应采用分组、搜索或分层路由，避免一次性暴露全部工具。",
+            [
+              { id: "model-tool-selection", title: "Model Tool Selection", summary: "由模型根据描述选择工具和参数。", description: "将工具 Schema 提供给模型，接收 tool call 后先进行参数校验和权限判断，再进入执行层。", tags: ["Tool Calling", "LLM"] },
+              { id: "rule-tool-router", title: "Rule-based Tool Router", summary: "按明确条件将任务映射到工具。", description: "对稳定业务规则使用代码路由，减少不必要的模型调用，并为冲突和低置信度情况保留回退策略。", tags: ["Rules", "Routing"] },
+              { id: "dynamic-tool-discovery", title: "Dynamic Tool Discovery", summary: "按需发现和加载工具能力。", description: "使用 MCP Registry、工具目录或语义检索发现相关工具，加载前检查来源、描述、权限和版本。", tags: ["MCP", "Discovery"] }
+            ],
+            ["Selection", "Routing", "Discovery"]
+          ),
+          capability(
+            "tool-execution",
+            "工具执行与可靠性 Execution",
+            "可靠执行工具调用，并处理超时、失败、重试和副作用。",
+            "工具执行不能假设网络和外部系统始终可用。执行层应提供统一错误模型、有限重试、幂等控制和后置验证。",
+            [
+              { id: "timeout-retry", title: "Timeout / Retry / Backoff", summary: "使用超时、有限重试和指数退避。", description: "为每种工具定义超时、可重试错误、最大重试次数和指数退避，避免对非幂等操作盲目重试。", tags: ["Timeout", "Retry", "Backoff"] },
+              { id: "idempotency", title: "Idempotency Key", summary: "防止重复请求造成重复副作用。", description: "为写操作生成幂等键，在服务端保存执行结果或请求状态，使网络重试不会重复创建、扣款或发送。", tags: ["Idempotency", "Deduplication"] },
+              { id: "async-tool-job", title: "Async Tool Job", summary: "将耗时操作转为异步任务。", description: "返回 job_id 并通过轮询、Webhook 或事件通知获取最终结果，支持取消、超时和状态恢复。", tags: ["Async", "Job Queue"] },
+              { id: "tool-result-validation", title: "Tool Result Validation", summary: "校验工具结果并确认外部状态。", description: "对返回值执行 Schema 校验和业务后置条件检查，区分成功、部分成功、可重试失败和永久失败。", tags: ["Result Schema", "Postcondition"] }
+            ],
+            ["Reliability", "Idempotency", "Async"]
+          ),
+          capability(
+            "tool-integrations",
+            "外部系统集成 Integrations",
+            "连接 API、MCP 服务、浏览器和计算机使用环境。",
+            "集成层负责协议适配和凭证管理，不应将第三方协议细节散落在 Agent 推理逻辑中。",
+            [
+              { id: "rest-api-client", title: "REST / GraphQL Client", summary: "通过 API 客户端访问业务系统。", description: "封装认证、分页、速率限制、错误映射和数据类型，避免模型直接拼接任意 HTTP 请求。", tags: ["REST", "GraphQL"] },
+              { id: "mcp-client-server", title: "MCP Client / Server", summary: "通过 MCP 暴露和调用工具及资源。", description: "使用 MCP Client 发现服务器能力，通过 stdio 或 Streamable HTTP 传输调用工具，并隔离服务器信任边界。", tags: ["MCP", "stdio", "HTTP"], resources: [{ label: "MCP Documentation", url: "https://modelcontextprotocol.io/docs" }] },
+              { id: "browser-automation", title: "Browser Automation", summary: "通过浏览器自动化完成网页操作。", description: "使用 Playwright 等工具进行页面导航、元素定位、表单交互和状态验证，并限制可访问域名与下载行为。", tags: ["Playwright", "Browser"] }
+            ],
+            ["API", "MCP", "Browser"]
+          ),
+          capability(
+            "tool-permissions-sandbox",
+            "权限与执行隔离 Permissions & Sandbox",
+            "限制工具可以访问的资源、数据和执行能力。",
+            "工具权限必须由可信运行时强制执行。模型输出、网页内容和 MCP 返回都不能直接扩大权限范围。",
+            [
+              { id: "oauth-scopes", title: "OAuth Scopes", summary: "使用细粒度授权范围访问外部服务。", description: "为用户和 Agent 申请最小 OAuth Scope，使用短期 Token，安全存储并支持撤销和轮换。", tags: ["OAuth", "Least Privilege"] },
+              { id: "policy-engine", title: "Policy Engine", summary: "在执行前按身份和资源策略授权。", description: "使用 RBAC、ABAC 或 OPA 等策略引擎判断主体、动作、资源和上下文是否满足授权条件。", tags: ["RBAC", "ABAC", "OPA"] },
+              { id: "execution-sandbox", title: "Execution Sandbox", summary: "隔离代码、文件和网络执行环境。", description: "使用容器、微虚拟机或受限运行时控制文件系统、网络出口、CPU、内存、进程和执行时间。", tags: ["Container", "MicroVM", "Isolation"] }
+            ],
+            ["OAuth", "Policy", "Sandbox"]
+          )
+        ]
+      ),
+      moduleNode(
+        "orchestration",
+        "流程编排 Orchestration",
+        "管理 Agent 的状态、步骤流转、任务交接和人机协作。",
+        "编排模块负责将多个能力组织成可靠的运行流程。它维护状态、检查点和转移条件，并处理并行任务、Agent 委派、人工审批和异常恢复。",
+        "#4F9CA8",
+        ["Workflow", "State", "Multi-Agent"],
+        [
+          capability(
+            "workflow-state",
+            "工作流与状态管理 Workflow State",
+            "使用明确的状态和转移条件控制任务生命周期。",
+            "长任务需要可暂停、可恢复和可审计的状态模型。状态转移应由确定性代码验证，避免关键业务流程只存在于 Prompt 中。",
+            [
+              { id: "finite-state-machine", title: "Finite State Machine", summary: "使用状态机管理任务状态与转移。", description: "定义状态、事件、守卫条件和终止状态，适合审批、订单处理和明确阶段的 Agent 任务。", tags: ["FSM", "State Machine"] },
+              { id: "graph-workflow", title: "Graph Workflow · LangGraph", summary: "用节点和边组织有状态 Agent 流程。", description: "将模型调用、工具执行和条件路由建模为图节点与边，使用共享 State 和循环边管理复杂工作流。", tags: ["LangGraph", "Graph"], resources: [{ label: "LangGraph Documentation", url: "https://docs.langchain.com/oss/python/langgraph/overview" }] },
+              { id: "checkpoint-persistence", title: "Checkpoint Persistence", summary: "保存执行快照并支持断点恢复。", description: "在关键节点持久化状态、已完成步骤和执行游标，恢复时验证版本和副作用幂等性。", tags: ["Checkpoint", "Persistence"] }
+            ],
+            ["State Machine", "Graph", "Checkpoint"]
+          ),
+          capability(
+            "multi-agent-collaboration",
+            "多 Agent 协作 Multi-Agent",
+            "通过分工、委派和并行执行完成复杂任务。",
+            "多 Agent 应建立在清晰的职责边界和可测收益上。需要定义通信协议、上下文传递、结果合并和责任归属。",
+            [
+              { id: "supervisor-worker", title: "Supervisor / Worker", summary: "由协调 Agent 分配任务并汇总结果。", description: "Supervisor 负责任务拆分、子 Agent 路由和结果验收，Worker 在受限职责与工具权限内执行子任务。", tags: ["Supervisor", "Delegation"] },
+              { id: "agent-handoff", title: "Agent Handoff", summary: "将控制权和必要上下文交给另一个 Agent。", description: "交接时传递目标、已完成工作、未解决问题和允许使用的工具，并设置最大跳数和循环检测。", tags: ["Handoff", "Routing"] },
+              { id: "parallel-map-reduce", title: "Parallel Map-Reduce", summary: "并行执行子任务后统一聚合。", description: "将可独立执行的子任务并发分发，使用统一输出 Schema 汇总，并处理超时、部分失败和冲突结果。", tags: ["Parallel", "Map-Reduce"] }
+            ],
+            ["Delegation", "Handoff", "Parallel"]
+          ),
+          capability(
+            "human-in-loop",
+            "人机协同 Human-in-the-loop",
+            "在关键节点暂停流程并等待人工决策或补充信息。",
+            "人工协同是 Agent 工作流中的正式控制节点。审批应绑定具体动作和参数，支持修改、拒绝、超时与恢复。",
+            [
+              { id: "approval-gate", title: "Approval Gate", summary: "在高风险操作前要求人工批准。", description: "展示拟执行动作、影响范围和参数快照，审批结果与请求版本绑定，防止审批后参数被替换。", tags: ["Approval", "Human Review"] },
+              { id: "interrupt-resume", title: "Interrupt / Resume", summary: "暂停 Agent 并在人工输入后恢复。", description: "持久化当前状态和检查点，等待人工补充或选择后从指定节点继续执行。", tags: ["Interrupt", "Resume"] },
+              { id: "review-queue", title: "Review Queue", summary: "将待审核任务分发到人工工作台。", description: "使用队列管理待处理、已批准、已拒绝和超时任务，记录审核人、时间、理由和执行结果。", tags: ["Queue", "Audit"] }
+            ],
+            ["Approval", "Interrupt", "Review"]
+          ),
+          capability(
+            "durable-execution",
+            "异步任务与持久执行 Durable Execution",
+            "支持长时间运行、调度、重试和故障恢复。",
+            "长流程不应依赖单个 HTTP 请求保持存活。持久执行需要可靠队列、任务状态存储和可恢复的活动步骤。",
+            [
+              { id: "task-queue", title: "Task Queue · BullMQ / Celery", summary: "通过任务队列解耦请求和后台执行。", description: "使用 Redis Queue、BullMQ 或 Celery 管理任务分发、并发、重试、优先级和死信队列。", tags: ["BullMQ", "Celery", "Redis"] },
+              { id: "durable-workflow-engine", title: "Durable Workflow · Temporal", summary: "持久化执行历史并自动恢复工作流。", description: "使用 Temporal 等持久执行引擎管理长流程、定时器、重试和故障恢复，避免自行实现复杂恢复协议。", tags: ["Temporal", "Durable Execution"], resources: [{ label: "Temporal Documentation", url: "https://docs.temporal.io/" }] },
+              { id: "scheduler", title: "Scheduler", summary: "执行定时、周期和延迟任务。", description: "通过 Cron、任务调度器或延迟队列触发 Agent 工作，并处理重复执行、时区和错过调度的补偿策略。", tags: ["Cron", "Scheduling"] }
+            ],
+            ["Queue", "Durable Execution", "Scheduler"]
+          )
+        ]
+      ),
+      moduleNode(
+        "context-prompt",
+        "上下文与提示 Context",
+        "为每次模型调用组装正确、精简且符合约束的信息。",
+        "上下文模块决定模型每一轮能看到什么。它将系统规则、当前任务、历史状态、检索证据和工具结果按优先级组织，并在 Token 预算内压缩和注入。",
+        "#6C8DBB",
+        ["Prompt", "Context Engineering", "Structured Output"],
+        [
+          capability(
+            "prompt-management",
+            "提示词管理 Prompt Management",
+            "组织稳定规则、任务指令和可复用提示模板。",
+            "Prompt 应作为可测试、可版本化的工程资产管理，避免将业务逻辑散落在多个字符串中。",
+            [
+              { id: "system-prompt-template", title: "System Prompt Template", summary: "定义角色、目标、规则和工具使用边界。", description: "将系统级约束与动态任务参数分离，明确禁止事项、失败策略和停止条件。", tags: ["System Prompt", "Template"] },
+              { id: "prompt-versioning", title: "Prompt Versioning", summary: "记录提示词版本并支持对比和回滚。", description: "为 Prompt 建立版本号、变更记录和测试样本，发布前执行离线回归并支持快速回滚。", tags: ["Versioning", "A/B Test"] },
+              { id: "prompt-composition", title: "Prompt Composition", summary: "通过模块化片段组合复杂提示词。", description: "将安全规则、角色说明、任务指令、输出格式和示例拆成可复用片段，按任务类型组合。", tags: ["Composition", "Templates"] }
+            ],
+            ["System Prompt", "Versioning", "Composition"]
+          ),
+          capability(
+            "context-assembly",
+            "上下文组装 Context Assembly",
+            "从多个数据源选择当前任务真正需要的信息。",
+            "上下文组装要处理优先级、时效性、相关性和信任等级，避免将全部历史记录和检索结果无差别塞入模型。",
+            [
+              { id: "context-builder", title: "Context Builder", summary: "统一构建模型调用所需的上下文对象。", description: "将系统指令、用户目标、状态摘要、记忆、检索证据和工具结果装配为结构化 Context。", tags: ["Context Builder", "Assembly"] },
+              { id: "memory-injection", title: "Memory Injection", summary: "按当前任务召回并注入相关记忆。", description: "根据用户、任务和时间过滤记忆，控制注入数量，并保留来源、更新时间和可信度。", tags: ["Memory", "Retrieval"] },
+              { id: "retrieval-injection", title: "RAG Context Injection", summary: "将检索证据按相关性组织进 Prompt。", description: "对候选文档进行权限过滤、去重和排序，保留引用标识，并将不可信内容明确标记为数据。", tags: ["RAG", "Evidence"] }
+            ],
+            ["Context Builder", "Memory", "RAG"]
+          ),
+          capability(
+            "context-compression",
+            "上下文压缩 Context Compression",
+            "在有限 Token 预算下保留最有价值的信息。",
+            "上下文压缩应优先保留目标、约束、关键决策和未完成事项。压缩结果需要能够追溯原始来源，并避免摘要引入新事实。",
+            [
+              { id: "rolling-summary", title: "Rolling Summary", summary: "持续维护会话和任务滚动摘要。", description: "在上下文达到阈值时总结历史轮次，保留目标、事实、决策、约束和待办，再替换低价值历史文本。", tags: ["Summarization", "Rolling Context"] },
+              { id: "token-budget-selector", title: "Token Budget Selector", summary: "按优先级选择上下文片段。", description: "估算 Token 数，结合相关性、重要性、时效性和来源可信度进行预算分配。", tags: ["Token Budget", "Selection"] },
+              { id: "prompt-cache", title: "Prompt Caching", summary: "复用稳定前缀以降低延迟和成本。", description: "将稳定系统指令和静态上下文放在可缓存前缀，减少重复输入并注意缓存命中条件和敏感数据边界。", tags: ["Caching", "Cost"] }
+            ],
+            ["Summarization", "Token Budget", "Caching"]
+          ),
+          capability(
+            "output-contract",
+            "输出约束 Output Contract",
+            "让模型响应符合下游程序可消费的格式和业务契约。",
+            "模型输出必须经过解析和业务验证。格式正确并不代表语义正确，敏感操作还需要独立授权。",
+            [
+              { id: "json-schema-output", title: "JSON Schema / Structured Output", summary: "通过 Schema 限定输出字段和类型。", description: "定义必填字段、枚举、嵌套结构和额外字段策略，使用模型结构化输出能力或受约束解码。", tags: ["JSON Schema", "Structured Output"] },
+              { id: "typed-parser", title: "Typed Parser", summary: "将模型响应解析为强类型对象。", description: "使用 Pydantic、Zod 或类型化解析器验证模型响应，并将解析错误转为明确的修复请求。", tags: ["Pydantic", "Zod", "Parser"] },
+              { id: "repair-retry", title: "Repair / Retry", summary: "对格式错误或缺失字段进行有限修复。", description: "将校验错误反馈给模型进行有限重试，设置次数和 Token 上限，并避免自动修复越过权限边界。", tags: ["Retry", "Repair"] }
+            ],
+            ["Schema", "Parser", "Validation"]
+          )
+        ]
+      ),
+      moduleNode(
+        "model-runtime",
+        "模型运行时 Model Runtime",
+        "统一接入模型供应商，管理模型路由、调用策略和多模态能力。",
+        "模型运行时将上层 Agent 逻辑与模型供应商 API 解耦，负责模型选择、参数管理、流式响应、降级和调用成本治理。",
+        "#7384A5",
+        ["LLM", "Gateway", "Streaming"],
+        [
+          capability(
+            "model-routing",
+            "模型路由 Model Routing",
+            "根据任务能力、成本、延迟和可用性选择模型。",
+            "路由策略应可解释、可观测，并保留故障回退。不要只按模型名称硬编码业务逻辑。",
+            [
+              { id: "capability-router", title: "Capability-based Router", summary: "按推理、视觉、长上下文等能力路由。", description: "维护模型能力目录，根据任务标签和输入模态选择满足约束的模型。", tags: ["Routing", "Capabilities"] },
+              { id: "cost-latency-router", title: "Cost / Latency Router", summary: "按预算和响应时间选择模型。", description: "根据 Token 价格、历史延迟、速率限制和任务优先级选择模型，必要时降级。", tags: ["Cost", "Latency"] },
+              { id: "fallback-chain", title: "Fallback Chain", summary: "主模型不可用时切换备用模型。", description: "配置主备模型、错误分类、熔断和重试，确保回退模型满足基本能力和安全要求。", tags: ["Fallback", "Circuit Breaker"] }
+            ],
+            ["Routing", "Fallback", "Cost"]
+          ),
+          capability(
+            "provider-adapters",
+            "供应商适配 Provider Adapters",
+            "将不同模型 API 统一为内部调用接口。",
+            "适配层统一消息结构、工具调用、错误码和 Token 统计，减少上层代码对特定供应商协议的耦合。",
+            [
+              { id: "provider-abstraction", title: "Provider Abstraction", summary: "定义统一的模型调用接口。", description: "抽象 messages、tools、response format、usage 和 error，使不同供应商适配到同一内部协议。", tags: ["Adapter", "Abstraction"] },
+              { id: "openai-compatible-api", title: "OpenAI-compatible API", summary: "通过兼容协议接入不同模型服务。", description: "使用兼容 Chat Completions 或 Responses 的接口接入自托管和第三方模型，并对不兼容特性做能力检测。", tags: ["API Compatibility"] },
+              { id: "litellm-gateway", title: "LiteLLM Gateway", summary: "统一代理多个模型供应商。", description: "使用 LiteLLM 统一模型名称、密钥、预算、日志和回退策略，作为模型访问网关。", tags: ["LiteLLM", "Gateway"], resources: [{ label: "LiteLLM Documentation", url: "https://docs.litellm.ai/" }] }
+            ],
+            ["Adapter", "Gateway", "Providers"]
+          ),
+          capability(
+            "streaming-multimodal",
+            "流式与多模态生成 Streaming & Multimodal",
+            "处理流式文本、音频和其他多模态模型输出。",
+            "模型输出可能是文本片段、工具调用增量或音频数据。调用层应统一事件协议，并正确处理取消、断连和最终 usage。",
+            [
+              { id: "sse-streaming", title: "SSE Streaming", summary: "通过 Server-Sent Events 推送生成增量。", description: "将模型流转换为稳定事件格式，处理首 Token 时间、断连、取消和流结束事件。", tags: ["SSE", "Streaming"] },
+              { id: "realtime-audio", title: "Realtime Audio", summary: "处理语音输入输出和实时双向交互。", description: "管理音频分块、转写、打断、端点检测和会话状态，区分实时语音与离线转写链路。", tags: ["Audio", "Realtime"] },
+              { id: "multimodal-output", title: "Multimodal Output Adapter", summary: "统一处理文本、图像和结构化多模态输出。", description: "解析模型响应中的文本、图像引用、音频片段和工具调用，按客户端能力转换为可呈现事件。", tags: ["Multimodal", "Output"] }
+            ],
+            ["Streaming", "Audio", "Multimodal"]
+          )
+        ]
+      ),
+      moduleNode(
+        "evaluation-observability",
+        "评估与可观测性 Evaluation",
+        "衡量 Agent 的任务效果、执行轨迹、性能成本和版本变化。",
+        "评估与可观测性为 Agent 提供反馈闭环。既要判断任务最终是否完成，也要观察每次模型调用、检索和工具执行，定位失败原因并持续回归。",
+        "#7D88A7",
+        ["Evals", "Tracing", "Metrics"],
+        [
+          capability(
+            "evaluation-datasets",
+            "评测数据与任务成功率 Evals",
+            "建立可重复的数据集和评分标准，量化 Agent 任务表现。",
+            "评测集应覆盖常见路径、边界条件和对抗样本，并将主观质量与可程序化指标分开。",
+            [
+              { id: "golden-dataset", title: "Golden Dataset", summary: "维护代表性任务和标准结果。", description: "收集真实任务、人工标注和边界样本，版本化保存输入、预期结果和评分标准。", tags: ["Dataset", "Ground Truth"] },
+              { id: "environment-simulator", title: "Environment Simulator", summary: "在可控环境中模拟工具和外部系统。", description: "使用 Mock API、测试数据库和模拟浏览器构造可重复环境，覆盖成功、超时和异常路径。", tags: ["Simulation", "Mock"] },
+              { id: "llm-as-judge", title: "LLM-as-a-Judge", summary: "使用评审模型评价开放式输出质量。", description: "定义评分 Rubric、成对比较和理由输出，对评审器做人工抽检和偏差校准。", tags: ["LLM Judge", "Rubric"] }
+            ],
+            ["Dataset", "Simulation", "Judge"]
+          ),
+          capability(
+            "tracing-debugging",
+            "执行追踪与调试 Tracing",
+            "记录模型、工具、检索和状态变更的完整调用链。",
+            "一次 Agent 任务可能跨越多个模型和外部系统。Trace 应能串联每个 Span，并在保护隐私的前提下保留足够的调试信息。",
+            [
+              { id: "opentelemetry", title: "OpenTelemetry", summary: "使用标准 Trace / Span 采集执行链路。", description: "为请求、模型调用、工具和检索创建 Span，统一 trace_id、span_id、属性和异常记录。", tags: ["OpenTelemetry", "Tracing"], resources: [{ label: "OpenTelemetry", url: "https://opentelemetry.io/docs/" }] },
+              { id: "langfuse-tracing", title: "Langfuse", summary: "追踪 LLM 调用、Prompt 和 Token 成本。", description: "记录模型输入输出、Prompt 版本、工具调用、用户反馈和 Token usage，支持会话级排查。", tags: ["Langfuse", "LLM Observability"], resources: [{ label: "Langfuse Docs", url: "https://langfuse.com/docs" }] },
+              { id: "phoenix-tracing", title: "Arize Phoenix", summary: "分析 LLM Trace 和检索质量。", description: "采集 LLM 和 RAG Trace，检查检索片段、模型输出和调用耗时，辅助调试与评估。", tags: ["Phoenix", "RAG Tracing"], resources: [{ label: "Phoenix Documentation", url: "https://arize.com/docs/phoenix" }] }
+            ],
+            ["Trace", "Span", "Debug"]
+          ),
+          capability(
+            "runtime-metrics",
+            "运行指标 Metrics",
+            "从效果、性能、成本和安全维度监控 Agent。",
+            "指标需要与真实业务目标关联，并按任务类型、模型版本和工具维度切分，避免只观察平均延迟或总 Token 数。",
+            [
+              { id: "task-quality-metrics", title: "Task Quality Metrics", summary: "衡量完成率、准确率和人工接管率。", description: "统计任务成功率、用户采纳率、返工率、事实错误率和人工升级比例。", tags: ["Success Rate", "Quality"] },
+              { id: "latency-metrics", title: "Latency / Throughput", summary: "监控端到端延迟和系统吞吐。", description: "记录 P50/P95/P99 延迟、首 Token 时间、工具耗时、队列等待和超时率。", tags: ["P95", "Throughput", "SLO"] },
+              { id: "cost-metrics", title: "Cost / Token Metrics", summary: "追踪单任务模型与工具成本。", description: "按任务和模型统计输入输出 Token、调用次数、工具成本和缓存命中率，定位成本异常。", tags: ["Token", "Budget", "Cost"] }
+            ],
+            ["Quality", "Latency", "Cost"]
+          ),
+          capability(
+            "regression-release",
+            "回归测试与发布 Regression",
+            "将模型、Prompt、工具和知识库变化纳入发布质量门禁。",
+            "Agent 行为会随模型版本和上下文变化。发布应使用固定基准集、灰度流量和快速回滚机制。",
+            [
+              { id: "agent-ci-eval", title: "CI Evaluation Gate", summary: "在 CI 中运行关键任务回归评测。", description: "每次代码、Prompt 或模型配置变更后运行基准任务，对成功率、成本和安全指标设置门槛。", tags: ["CI", "Regression"] },
+              { id: "ab-canary", title: "A/B Test / Canary", summary: "通过灰度和对照实验验证新版本。", description: "将流量分配给基线和候选版本，监控质量、延迟、成本和用户反馈，达到门槛后逐步放量。", tags: ["A/B", "Canary"] },
+              { id: "failure-replay", title: "Failure Replay", summary: "重放线上失败轨迹并沉淀回归用例。", description: "脱敏保存输入、模型版本、工具结果和状态快照，在隔离环境中重放并验证修复是否有效。", tags: ["Replay", "Debugging"] }
+            ],
+            ["CI", "Canary", "Replay"]
+          )
+        ]
+      ),
+      moduleNode(
+        "security-governance",
+        "安全与治理 Security",
+        "保护 Agent、用户数据和外部系统，约束高风险行为。",
+        "安全治理是横切模块，覆盖感知、记忆、模型、工具和运行时。提示词只能提供引导，真正的安全边界必须由权限系统、隔离执行、数据治理和审计机制保证。",
+        "#B97955",
+        ["Prompt Injection", "IAM", "Privacy"],
+        [
+          capability(
+            "prompt-injection-defense",
+            "提示注入防护 Prompt Injection",
+            "识别并隔离来自用户、网页、文档和工具结果的恶意指令。",
+            "所有外部内容都应视为不可信数据。不能让检索文档或网页内容覆盖系统规则，也不能让模型自行决定是否突破工具权限。",
+            [
+              { id: "trust-boundary", title: "Trust Boundary Separation", summary: "区分可信指令与不可信内容。", description: "将系统指令、用户请求、检索资料和工具结果分层传递，对不可信片段添加明确边界和来源标记。", tags: ["Trust Boundary", "Untrusted Input"] },
+              { id: "tool-allowlist", title: "Tool Allowlist / Policy", summary: "使用工具白名单和策略限制可执行动作。", description: "按任务和用户身份限制工具集合、参数范围、目标域名和副作用，执行前进行服务端策略检查。", tags: ["Allowlist", "Policy"] },
+              { id: "output-sanitization", title: "Output Sanitization", summary: "过滤不安全输出和可执行内容。", description: "对 HTML、Markdown、URL 和文件产物进行安全处理，避免脚本注入、危险链接和不可信内容直接执行。", tags: ["Sanitization", "XSS"] }
+            ],
+            ["Injection", "Trust", "Guardrails"]
+          ),
+          capability(
+            "identity-access",
+            "身份与访问控制 IAM",
+            "确认当前主体身份，并对每次资源访问执行授权。",
+            "用户身份、Agent 身份和工具凭证应分离。授权要按资源和动作细粒度执行，默认拒绝未明确授权的操作。",
+            [
+              { id: "rbac-abac", title: "RBAC / ABAC", summary: "按角色或属性决定资源访问权限。", description: "使用角色权限或主体、资源、动作和环境属性进行策略决策，并在服务端对每次操作重新授权。", tags: ["RBAC", "ABAC"] },
+              { id: "oauth-oidc", title: "OAuth 2.0 / OIDC", summary: "使用标准身份认证和委托授权。", description: "使用 OIDC 验证身份，OAuth Scope 限定授权范围，采用短期 Token 和可撤销授权。", tags: ["OAuth", "OIDC"] },
+              { id: "secrets-manager", title: "Secrets Manager", summary: "安全存储和轮换 API Key 与凭证。", description: "通过云密钥管理服务或 Vault 保存凭证，避免将长期密钥暴露给模型、Prompt、日志或前端。", tags: ["Vault", "KMS", "Secrets"] }
+            ],
+            ["Identity", "Authorization", "Secrets"]
+          ),
+          capability(
+            "data-privacy",
+            "数据隐私与治理 Data Privacy",
+            "控制敏感信息的采集、使用、存储、保留和删除。",
+            "记忆和日志可能包含个人信息与业务机密。数据治理需要贯穿采集、模型调用、存储、检索和删除全链路。",
+            [
+              { id: "pii-redaction", title: "PII Detection / Redaction", summary: "识别并脱敏个人敏感信息。", description: "使用规则、NER 或 DLP 检测邮箱、电话、证件号和敏感字段，在日志和外部模型调用前按策略脱敏。", tags: ["PII", "DLP", "Redaction"] },
+              { id: "encryption", title: "Encryption at Rest / Transit", summary: "保护传输中和持久化的数据。", description: "使用 TLS 保护传输，使用 KMS 管理静态数据加密密钥，并限制密钥访问和轮换。", tags: ["TLS", "KMS", "Encryption"] },
+              { id: "retention-deletion", title: "Retention / Deletion Policy", summary: "按数据类型执行保留和删除策略。", description: "定义日志、记忆和文档的保留周期，删除时同步清理缓存、索引和派生数据，并保留必要审计。", tags: ["Retention", "Deletion"] }
+            ],
+            ["PII", "Encryption", "Retention"]
+          ),
+          capability(
+            "runtime-guardrails",
+            "运行时安全与韧性 Runtime Guardrails",
+            "通过预算、限流、审计和故障保护控制系统风险。",
+            "Agent 可能循环调用、过度消耗 Token 或重复执行操作。运行时必须为任务、模型和工具设置明确的资源与安全边界。",
+            [
+              { id: "rate-limit-circuit-breaker", title: "Rate Limit / Circuit Breaker", summary: "限制调用速率并隔离持续故障服务。", description: "按用户、模型和工具设置限流，使用熔断和半开探测避免故障扩散。", tags: ["Rate Limit", "Circuit Breaker"] },
+              { id: "agent-budget", title: "Agent Budget", summary: "限制 Token、工具次数、时间和并发。", description: "为单任务设置最大循环步数、模型调用数、Token 预算、执行时间和工具调用次数，超限后暂停或转人工。", tags: ["Budget", "Token", "Limits"] },
+              { id: "audit-log", title: "Audit Log", summary: "记录敏感决策、审批和外部副作用。", description: "记录主体、动作、资源、参数摘要、授权结果、审批信息和执行结果，提供关联 ID 和防篡改存储。", tags: ["Audit", "Compliance"] }
+            ],
+            ["Rate Limit", "Budget", "Audit"]
+          )
+        ]
+      )
+    ]
+  }
+);

@@ -17,7 +17,7 @@ export type KnowledgeItem = {
 
 export type KnowledgeNodeData = {
   item: KnowledgeItem;
-  kind: "root" | "category" | "topic";
+  kind: "root" | "module" | "capability" | "implementation";
   color: string;
   indexLabel?: string;
   expanded: boolean;

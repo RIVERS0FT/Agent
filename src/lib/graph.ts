@@ -68,18 +68,24 @@ export function buildGraph(
     const rowSpan = measure(item);
     const centerRow = topRow + rowSpan / 2;
     const kind: KnowledgeNodeData["kind"] =
-      depth === 0 ? "root" : depth === 1 ? "category" : "topic";
+      depth === 0
+        ? "root"
+        : depth === 1
+          ? "module"
+          : depth === 2
+            ? "capability"
+            : "implementation";
     const color = item.color ?? inheritedColor;
-    const categoryIndex =
-      kind === "category"
-        ? (root.children ?? []).findIndex((category) => category.id === item.id) + 1
+    const moduleIndex =
+      kind === "module"
+        ? (root.children ?? []).findIndex((module) => module.id === item.id) + 1
         : 0;
 
     const data: KnowledgeNodeData = {
       item,
       kind,
       color,
-      indexLabel: categoryIndex > 0 ? String(categoryIndex).padStart(2, "0") : undefined,
+      indexLabel: moduleIndex > 0 ? String(moduleIndex).padStart(2, "0") : undefined,
       expanded: children.length > 0 || kind === "root",
       hasChildren: (item.children?.length ?? 0) > 0,
       selected: selectedId === item.id,
@@ -94,7 +100,12 @@ export function buildGraph(
       selected: selectedId === item.id,
       draggable: false,
       selectable: true,
-      style: { width: kind === "root" ? 300 : kind === "category" ? 278 : 258 }
+      style: {
+        width:
+          kind === "root" ? 300 :
+          kind === "module" ? 278 :
+          kind === "capability" ? 258 : 248
+      }
     });
 
     if (parentId) {
@@ -155,4 +166,15 @@ export function countDescendants(items: KnowledgeItem[] = []): number {
     (total, item) => total + 1 + countDescendants(item.children ?? []),
     0
   );
+}
+
+export function collectExpandableIds(root: KnowledgeItem): Set<string> {
+  const ids = new Set<string>();
+  const visit = (item: KnowledgeItem) => {
+    if (!item.children?.length) return;
+    ids.add(item.id);
+    item.children.forEach(visit);
+  };
+  visit(root);
+  return ids;
 }

@@ -20,6 +20,7 @@ import { KnowledgeNode } from "./components/KnowledgeNode";
 import { knowledgeTree } from "./data/knowledge";
 import {
   buildGraph,
+  collectExpandableIds,
   countDescendants,
   filterKnowledgeTree,
   findKnowledgeColor,
@@ -31,7 +32,7 @@ const nodeTypes = { knowledge: KnowledgeNode };
 
 export default function App() {
   const { fitView } = useReactFlow();
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(["fundamentals"]));
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(["memory"]));
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
@@ -50,7 +51,6 @@ export default function App() {
     [query]
   );
 
-  // Recalculate the layout while keeping the chosen node at its current canvas position.
   const applyExpanded = useCallback((nextExpanded: Set<string>, anchorId: string) => {
     const previousAnchor = graphRef.current.nodes.find((node) => node.id === anchorId);
     const nextGraph = buildGraph(
@@ -98,7 +98,6 @@ export default function App() {
     edges: baseGraph.edges
   }), [baseGraph, canvasOffset]);
 
-  // Keep refs synchronized so event handlers can calculate from the latest rendered graph.
   graphRef.current = graph;
   expandedRef.current = expanded;
   filteredTreeRef.current = filteredTree;
@@ -108,6 +107,7 @@ export default function App() {
 
   const matchCount = countDescendants(filteredTree.children ?? []);
   const selectedItem = findKnowledgeItem(knowledgeTree, selectedId);
+  const selectedNode = graph.nodes.find((node) => node.id === selectedId);
   const selectedColor = selectedItem
     ? (findKnowledgeColor(knowledgeTree, selectedItem.id) ?? "#4E83E6")
     : "#4E83E6";
@@ -122,13 +122,10 @@ export default function App() {
   const handleSearch = (value: string) => {
     setQuery(value);
     setSelectedId(null);
+    setCanvasOffset({ x: 0, y: 0 });
   };
 
-  const expandAll = () => {
-    const nextExpanded = new Set((knowledgeTree.children ?? []).map((item) => item.id));
-    applyExpanded(nextExpanded, ROOT_ID);
-  };
-
+  const expandAll = () => applyExpanded(collectExpandableIds(knowledgeTree), ROOT_ID);
   const collapseAll = () => applyExpanded(new Set(), ROOT_ID);
 
   return (
@@ -145,8 +142,8 @@ export default function App() {
             type="search"
             value={query}
             onChange={(event) => handleSearch(event.target.value)}
-            placeholder="搜索知识点..."
-            aria-label="搜索知识点"
+            placeholder="搜索模块、能力或技术..."
+            aria-label="搜索模块、能力或技术"
           />
           {query && (
             <button type="button" onClick={() => handleSearch("")} aria-label="清除搜索">
@@ -210,7 +207,7 @@ export default function App() {
         <div className="empty-search">
           <Search size={22} />
           <strong>没有找到相关知识点</strong>
-          <span>试试 Agent、RAG、工具调用或评估。</span>
+          <span>试试 Memory、RAG、ReAct、MCP 或 Embedding。</span>
           <button type="button" onClick={() => handleSearch("")}>清除搜索</button>
         </div>
       )}
@@ -219,6 +216,7 @@ export default function App() {
         <DetailPanel
           item={selectedItem}
           color={selectedColor}
+          kind={selectedNode?.data.kind ?? "implementation"}
           onClose={() => setSelectedId(null)}
         />
       )}
