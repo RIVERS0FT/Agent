@@ -64,6 +64,10 @@ a { color: inherit; text-decoration: none; }
 .canvas-search button { width: 22px; height: 22px; display: grid; flex: 0 0 auto; place-items: center; padding: 0; border: 0; border-radius: 6px; color: #8290a3; background: #f1f4f8; }
 .canvas-actions { right: 16px; gap: 8px; }
 .canvas-function-area {
+  position: absolute;
+  z-index: 10;
+  left: 16px;
+  bottom: 16px;
   height: 40px;
   display: flex;
   align-items: center;
@@ -233,11 +237,11 @@ a { color: inherit; text-decoration: none; }
   .canvas-brand { height: 38px; gap: 6px; padding-right: 8px; font-size: 10px; }
   .canvas-search { width: auto; min-width: 0; height: 38px; flex: 1; padding: 0 8px; }
   .canvas-actions { top: 56px; right: 10px; gap: 6px; }
-  .canvas-function-area { height: 34px; gap: 2px; padding: 3px 4px 3px 6px; }
+  .canvas-function-area { left: 10px; bottom: 10px; height: 34px; gap: 2px; padding: 3px 4px 3px 6px; }
   .canvas-function-label { padding-right: 5px; font-size: 10px; }
   .canvas-function-area button { width: 28px; height: 28px; }
   .canvas-utility-button { width: 34px; height: 34px; }
-  .detail-panel { top: 100px; right: 10px; bottom: 10px; left: 10px; width: auto; padding: 14px; }
+  .detail-panel { top: 100px; right: 10px; bottom: 56px; left: 10px; width: auto; padding: 14px; }
   .detail-section { margin-top: 16px; }
   .canvas-help { display: none; }
 }
