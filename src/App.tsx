@@ -32,7 +32,7 @@ const nodeTypes = { knowledge: KnowledgeNode };
 
 export default function App() {
   const { fitView } = useReactFlow();
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(["memory"]));
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set([ROOT_ID, "memory"]));
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
