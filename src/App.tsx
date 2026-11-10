@@ -136,7 +136,7 @@ export default function App() {
           query: queryRef.current,
           selectedId: selectedIdRef.current,
           canvasOffset: canvasOffsetRef.current,
-          viewport
+          viewport: hasSavedViewportRef.current ? viewport : null
         })
       );
     } catch {
@@ -147,6 +147,7 @@ export default function App() {
   const handleMoveEnd = useCallback(
     (_event: unknown, viewport: SavedViewport) => {
       viewportRef.current = viewport;
+      hasSavedViewportRef.current = true;
       persistViewState(viewport);
     },
     [persistViewState]
