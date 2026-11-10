@@ -787,7 +787,8 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "timeout-retry", title: "Timeout / Retry / Backoff", summary: "使用超时、有限重试和指数退避。", description: "为每种工具定义超时、可重试错误、最大重试次数和指数退避，避免对非幂等操作盲目重试。", tags: ["Timeout", "Retry", "Backoff"] },
               { id: "idempotency", title: "Idempotency Key", summary: "防止重复请求造成重复副作用。", description: "为写操作生成幂等键，在服务端保存执行结果或请求状态，使网络重试不会重复创建、扣款或发送。", tags: ["Idempotency", "Deduplication"] },
               { id: "async-tool-job", title: "Async Tool Job", summary: "将耗时操作转为异步任务。", description: "返回 job_id 并通过轮询、Webhook 或事件通知获取最终结果，支持取消、超时和状态恢复。", tags: ["Async", "Job Queue"] },
-              { id: "tool-result-validation", title: "Tool Result Validation", summary: "校验工具结果并确认外部状态。", description: "对返回值执行 Schema 校验和业务后置条件检查，区分成功、部分成功、可重试失败和永久失败。", tags: ["Result Schema", "Postcondition"] }
+              { id: "tool-result-validation", title: "Tool Result Validation", summary: "校验工具结果并确认外部状态。", description: "对返回值执行 Schema 校验和业务后置条件检查，区分成功、部分成功、可重试失败和永久失败。", tags: ["Result Schema", "Postcondition"] },
+              { id: "lifecycle-hooks-middleware", title: "Lifecycle Hooks / Middleware", summary: "在会话、模型调用和工具执行前后插入确定性逻辑。", description: "通过 SessionStart、PreToolUse、PostToolUse、Stop 等生命周期事件执行参数检查、权限门禁、日志、通知和结果校验；Hook 由运行时确定性触发，适合承载不能只依赖模型自觉遵守的规则。", tags: ["Hooks", "Middleware", "Pre / Post Tool"] }
             ],
             ["Reliability", "Idempotency", "Async"]
           ),
@@ -799,7 +800,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "rest-api-client", title: "REST / GraphQL Client", summary: "通过 API 客户端访问业务系统。", description: "封装认证、分页、速率限制、错误映射和数据类型，避免模型直接拼接任意 HTTP 请求。", tags: ["REST", "GraphQL"] },
               { id: "mcp-client-server", title: "MCP Client / Server", summary: "通过 MCP 暴露和调用工具及资源。", description: "使用 MCP Client 发现服务器能力，通过 stdio 或 Streamable HTTP 传输调用工具，并隔离服务器信任边界。", tags: ["MCP", "stdio", "HTTP"], resources: [{ label: "MCP Documentation", url: "https://modelcontextprotocol.io/docs" }] },
-              { id: "browser-automation", title: "Browser Automation", summary: "通过浏览器自动化完成网页操作。", description: "使用 Playwright 等工具进行页面导航、元素定位、表单交互和状态验证，并限制可访问域名与下载行为。", tags: ["Playwright", "Browser"] }
+              { id: "browser-automation", title: "Browser Automation", summary: "通过浏览器自动化完成网页操作。", description: "使用 Playwright 等工具进行页面导航、元素定位、表单交互和状态验证，并限制可访问域名与下载行为。", tags: ["Playwright", "Browser"] },
+              { id: "computer-use-gui", title: "Computer Use / GUI Automation", summary: "通过屏幕观察和输入动作操作桌面应用与图形界面。", description: "使用截图、Accessibility Tree、DOM 或视觉定位观察界面，再执行点击、键盘输入、滚动和拖拽；每次动作后重新观察并验证状态。与 Browser Automation 相比，Computer Use 可操作浏览器以外的桌面应用，但更依赖视觉反馈、坐标稳定性和执行权限。", tags: ["Computer Use", "GUI", "Screenshot", "Accessibility"] }
             ],
             ["API", "MCP", "Browser"]
           ),
@@ -845,7 +847,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "supervisor-worker", title: "Supervisor / Worker", summary: "由协调 Agent 分配任务并汇总结果。", description: "Supervisor 负责任务拆分、子 Agent 路由和结果验收，Worker 在受限职责与工具权限内执行子任务。", tags: ["Supervisor", "Delegation"] },
               { id: "agent-handoff", title: "Agent Handoff", summary: "将控制权和必要上下文交给另一个 Agent。", description: "交接时传递目标、已完成工作、未解决问题和允许使用的工具，并设置最大跳数和循环检测。", tags: ["Handoff", "Routing"] },
-              { id: "parallel-map-reduce", title: "Parallel Map-Reduce", summary: "并行执行子任务后统一聚合。", description: "将可独立执行的子任务并发分发，使用统一输出 Schema 汇总，并处理超时、部分失败和冲突结果。", tags: ["Parallel", "Map-Reduce"] }
+              { id: "parallel-map-reduce", title: "Parallel Map-Reduce", summary: "并行执行子任务后统一聚合。", description: "将可独立执行的子任务并发分发，使用统一输出 Schema 汇总，并处理超时、部分失败和冲突结果。", tags: ["Parallel", "Map-Reduce"] },
+              { id: "agent-to-agent-protocol", title: "Agent-to-Agent Protocol · A2A", summary: "通过标准化 Agent 身份、任务和产物协议实现跨 Agent 互操作。", description: "使用 Agent Card 发现远端 Agent 能力，通过标准化 Task 生命周期提交任务、查询状态、接收流式更新并获取 Artifact；协议层负责跨框架通信，具体授权、信任和结果验收仍由调用方控制。", tags: ["A2A", "Agent Interoperability", "Task Protocol"], resources: [{ label: "A2A Protocol", url: "https://a2a-protocol.org/latest/" }] }
             ],
             ["Delegation", "Handoff", "Parallel"]
           ),
@@ -892,7 +895,8 @@ export const knowledgeTree: KnowledgeItem = node(
             [
               { id: "system-prompt-template", title: "System Prompt Template", summary: "定义角色、目标、规则和工具使用边界。", description: "将系统级约束与动态任务参数分离，明确禁止事项、失败策略和停止条件。", tags: ["System Prompt", "Template"] },
               { id: "prompt-versioning", title: "Prompt Versioning", summary: "记录提示词版本并支持对比和回滚。", description: "为 Prompt 建立版本号、变更记录和测试样本，发布前执行离线回归并支持快速回滚。", tags: ["Versioning", "A/B Test"] },
-              { id: "prompt-composition", title: "Prompt Composition", summary: "通过模块化片段组合复杂提示词。", description: "将安全规则、角色说明、任务指令、输出格式和示例拆成可复用片段，按任务类型组合。", tags: ["Composition", "Templates"] }
+              { id: "prompt-composition", title: "Prompt Composition", summary: "通过模块化片段组合复杂提示词。", description: "将安全规则、角色说明、任务指令、输出格式和示例拆成可复用片段，按任务类型组合。", tags: ["Composition", "Templates"] },
+              { id: "agent-skills-package", title: "Agent Skills · SKILL.md Package", summary: "将领域指令、工作流程、脚本和示例封装为按需加载的能力包。", description: "Skill 通常由入口说明文件和可选 scripts、references、assets 组成；Agent 先发现 Skill 的名称与用途，再在任务相关时加载详细指令或执行脚本。它不同于单次 Prompt，也不同于需要即时调用的 Tool。", tags: ["Agent Skills", "SKILL.md", "Progressive Disclosure"], resources: [{ label: "Agent Skills Specification", url: "https://agentskills.io/specification" }] }
             ],
             ["System Prompt", "Versioning", "Composition"]
           ),
