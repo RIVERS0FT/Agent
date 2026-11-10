@@ -126,10 +126,16 @@ a { color: inherit; text-decoration: none; }
 .implementation-node-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
 .implementation-node-tags span { padding: 3px 6px; border-radius: 4px; color: #78869a; background: #f3f6fa; font-size: 8px; }
 
-.detail-panel { position: absolute; z-index: 20; top: 16px; right: 16px; bottom: 16px; width: min(350px, calc(100% - 32px)); overflow: auto; padding: 18px 18px 14px; border: 1px solid #e1e8f0; border-radius: 14px; background: rgba(255, 255, 255, 0.97); box-shadow: 0 15px 42px rgba(29, 49, 78, 0.14); animation: panel-in 180ms ease-out; }
+.detail-panel { position: absolute; z-index: 20; top: 16px; right: 16px; bottom: 16px; width: min(440px, calc(100% - 32px)); overflow: auto; padding: 18px 18px 14px; border: 1px solid #e1e8f0; border-radius: 14px; background: rgba(255, 255, 255, 0.97); box-shadow: 0 15px 42px rgba(29, 49, 78, 0.14); animation: panel-in 180ms ease-out; }
 @keyframes panel-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
-.detail-panel-top { display: flex; align-items: center; justify-content: space-between; }
+.detail-panel-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .detail-panel-top > div { display: flex; align-items: center; gap: 9px; }
+.detail-breadcrumb { flex: 1; min-width: 0; padding-top: 6px; }
+.detail-breadcrumb ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 3px; margin: 0; padding: 0; list-style: none; }
+.detail-breadcrumb li { display: inline-flex; align-items: center; gap: 3px; min-width: 0; max-width: 100%; color: #8b99ab; font-size: 11px; line-height: 1.6; }
+.detail-breadcrumb li span { overflow-wrap: anywhere; }
+.detail-breadcrumb li [aria-current="page"] { color: #344b69; font-weight: 700; }
+.detail-breadcrumb-separator { flex: 0 0 auto; color: #b2bdcb; }
 .detail-panel-eyebrow { color: #7e8da2; font-family: "DM Mono", monospace; font-size: 9px; letter-spacing: 0.12em; }
 .detail-panel-status { padding: 3px 6px; border-radius: 4px; color: #8491a4; background: #f2f5f9; font-size: 9px; }
 .icon-button { width: 29px; height: 29px; display: grid; place-items: center; padding: 0; border: 1px solid #e9eef4; border-radius: 8px; color: #8290a3; background: #fff; }
@@ -370,7 +376,7 @@ a { color: inherit; text-decoration: none; }
   right: 0;
 }
 
-.detail-panel-top { justify-content: flex-end; }
+.detail-panel-top { justify-content: space-between; }
 
 
 /* Compact Tidy Tree: compact fixed-height cards with progressive disclosure. */
