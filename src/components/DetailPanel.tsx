@@ -4,13 +4,14 @@ import type { KnowledgeItem, KnowledgeNodeData } from "../types";
 type DetailPanelProps = {
   item: KnowledgeItem;
   path: KnowledgeItem[];
+  relatedItems: KnowledgeItem[];
   color: string;
   kind: KnowledgeNodeData["kind"];
   onNavigate: (id: string) => void;
   onClose: () => void;
 };
 
-export function DetailPanel({ item, path, color, kind, onNavigate, onClose }: DetailPanelProps) {
+export function DetailPanel({ item, path, relatedItems, color, kind, onNavigate, onClose }: DetailPanelProps) {
   return (
     <aside className="detail-panel" aria-label="知识节点详情">
       <div className="detail-panel-top">
@@ -68,6 +69,28 @@ export function DetailPanel({ item, path, color, kind, onNavigate, onClose }: De
           ))}
         </ul>
       </section>
+
+      {!!relatedItems.length && (
+        <section className="detail-section">
+          <div className="detail-section-title">
+            <Layers3 size={15} />
+            <h3>关联知识</h3>
+          </div>
+          <div className="detail-related-list">
+            {relatedItems.map((related) => (
+              <button
+                type="button"
+                className="detail-related-link"
+                key={related.id}
+                onClick={() => onNavigate(related.id)}
+              >
+                <span>{related.title}</span>
+                <ChevronRight size={14} />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {!!item.tags?.length && (
         <section className="detail-section">
