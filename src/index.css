@@ -109,6 +109,16 @@ a { color: inherit; text-decoration: none; }
   color: #356fcf;
   background: #fff;
 }
+.canvas-function-area button:disabled {
+  color: #c0c9d5;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.canvas-function-area button:disabled:hover {
+  border-color: transparent;
+  color: #c0c9d5;
+  background: transparent;
+}
 .canvas-utility-button {
   width: 38px;
   justify-content: center;
