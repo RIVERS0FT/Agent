@@ -6,7 +6,7 @@ import type { KnowledgeNodeData } from "../types";
 type KnowledgeFlowNode = Node<KnowledgeNodeData, "knowledge">;
 
 function ExpandButton({ data }: { data: KnowledgeNodeData }) {
-  if (!data.hasChildren || data.kind === "root") return null;
+  if (!data.hasChildren) return null;
 
   const count = data.item.children?.length ?? 0;
 
@@ -42,8 +42,6 @@ export function KnowledgeNode({ data, selected }: NodeProps<KnowledgeFlowNode>) 
     ((selected || data.selected) ? " is-selected" : "");
 
   const accentStyle = { "--node-accent": data.color } as CSSProperties;
-  const childCount = data.item.children?.length ?? 0;
-
   return (
     <div className={className} style={accentStyle}>
       {data.kind !== "root" && (
@@ -75,17 +73,7 @@ export function KnowledgeNode({ data, selected }: NodeProps<KnowledgeFlowNode>) 
 
         {data.hasChildren && (
           <div className="node-actions">
-            {data.kind === "root" ? (
-              <span
-                className="node-child-count node-root-count"
-                title={childCount + " 个模块"}
-                aria-label={childCount + " 个模块"}
-              >
-                {childCount}
-              </span>
-            ) : (
-              <ExpandButton data={data} />
-            )}
+            <ExpandButton data={data} />
           </div>
         )}
       </div>
