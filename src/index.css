@@ -371,3 +371,65 @@ a { color: inherit; text-decoration: none; }
 }
 
 .detail-panel-top { justify-content: flex-end; }
+
+
+/* Compact Tidy Tree: compact fixed-height cards with progressive disclosure. */
+.knowledge-node {
+  height: 66px;
+  min-height: 66px;
+  max-height: 66px;
+  padding: 8px 12px;
+  overflow: visible;
+}
+
+.node-header {
+  min-height: 28px;
+  max-height: 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-title,
+.node-root .node-title,
+.node-capability .node-title,
+.node-implementation .node-title {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.node-summary,
+.node-root .node-summary,
+.node-module .node-summary,
+.node-capability .node-summary,
+.node-implementation .node-summary {
+  display: block;
+  min-width: 0;
+  margin: 4px 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.node-expand-control {
+  width: 28px;
+  height: 28px;
+}
+
+.node-actions {
+  align-items: center;
+  padding-top: 0;
+}
+
+.expand-node-button {
+  width: 28px;
+  height: 28px;
+}
