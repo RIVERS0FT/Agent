@@ -30,13 +30,88 @@ import {
 } from "./lib/graph";
 
 const nodeTypes = { knowledge: KnowledgeNode };
+const MAP_STATE_STORAGE_KEY = "agent-map:view-state:v1";
+
+type SavedViewport = { x: number; y: number; zoom: number };
+type PersistedMapState = {
+  expanded: Set<string>;
+  query: string;
+  selectedId: string | null;
+  canvasOffset: { x: number; y: number };
+  viewport: SavedViewport | null;
+};
+
+function loadPersistedMapState(): PersistedMapState {
+  const defaults: PersistedMapState = {
+    expanded: new Set([ROOT_ID, "memory"]),
+    query: "",
+    selectedId: null,
+    canvasOffset: { x: 0, y: 0 },
+    viewport: null
+  };
+
+  try {
+    if (typeof window === "undefined") return defaults;
+    const raw = window.localStorage.getItem(MAP_STATE_STORAGE_KEY);
+    if (!raw) return defaults;
+
+    const saved = JSON.parse(raw) as Record<string, unknown>;
+    const expandableIds = collectExpandableIds(knowledgeTree);
+    const expanded = Array.isArray(saved.expanded)
+      ? new Set(saved.expanded.filter(
+          (id): id is string => typeof id === "string" && expandableIds.has(id)
+        ))
+      : defaults.expanded;
+
+    const offset = saved.canvasOffset as { x?: unknown; y?: unknown } | undefined;
+    const canvasOffset =
+      offset && typeof offset.x === "number" && Number.isFinite(offset.x) &&
+      typeof offset.y === "number" && Number.isFinite(offset.y)
+        ? { x: offset.x, y: offset.y }
+        : defaults.canvasOffset;
+
+    const candidateViewport = saved.viewport as
+      | { x?: unknown; y?: unknown; zoom?: unknown }
+      | undefined;
+    const viewport =
+      candidateViewport &&
+      typeof candidateViewport.x === "number" && Number.isFinite(candidateViewport.x) &&
+      typeof candidateViewport.y === "number" && Number.isFinite(candidateViewport.y) &&
+      typeof candidateViewport.zoom === "number" &&
+      Number.isFinite(candidateViewport.zoom) &&
+      candidateViewport.zoom > 0
+        ? {
+            x: candidateViewport.x,
+            y: candidateViewport.y,
+            zoom: candidateViewport.zoom
+          }
+        : null;
+
+    const selectedId =
+      typeof saved.selectedId === "string" &&
+      findKnowledgeItem(knowledgeTree, saved.selectedId)
+        ? saved.selectedId
+        : null;
+
+    return {
+      expanded,
+      query: typeof saved.query === "string" ? saved.query : "",
+      selectedId,
+      canvasOffset,
+      viewport
+    };
+  } catch {
+    return defaults;
+  }
+}
 
 export default function App() {
   const { fitView } = useReactFlow();
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set([ROOT_ID, "memory"]));
-  const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+  const [restoredState] = useState(loadPersistedMapState);
+  const [expanded, setExpanded] = useState<Set<string>>(() => restoredState.expanded);
+  const [query, setQuery] = useState(restoredState.query);
+  const [selectedId, setSelectedId] = useState<string | null>(restoredState.selectedId);
+  const [canvasOffset, setCanvasOffset] = useState(restoredState.canvasOffset);
 
   const graphRef = useRef<{ nodes: Array<{ id: string; position: { x: number; y: number } }> }>({
     nodes: []
@@ -46,8 +121,38 @@ export default function App() {
   const selectedIdRef = useRef(selectedId);
   const queryRef = useRef(query);
   const canvasOffsetRef = useRef(canvasOffset);
+  const viewportRef = useRef<SavedViewport>(
+    restoredState.viewport ?? { x: 0, y: 0, zoom: 1 }
+  );
+  const hasSavedViewportRef = useRef(restoredState.viewport !== null);
+  const initialFitHandledRef = useRef(false);
 
-  const filteredTree = useMemo(
+  const persistViewState = useCallback((viewport = viewportRef.current) => {
+    try {
+      window.localStorage.setItem(
+        MAP_STATE_STORAGE_KEY,
+        JSON.stringify({
+          expanded: Array.from(expandedRef.current),
+          query: queryRef.current,
+          selectedId: selectedIdRef.current,
+          canvasOffset: canvasOffsetRef.current,
+          viewport
+        })
+      );
+    } catch {
+      // The graph remains usable when browser storage is unavailable or full.
+    }
+  }, []);
+
+  const handleMoveEnd = useCallback(
+    (_event: unknown, viewport: SavedViewport) => {
+      viewportRef.current = viewport;
+      persistViewState(viewport);
+    },
+    [persistViewState]
+  );
+
+  const filteredTree = useMemo<>(
     () => filterKnowledgeTree(knowledgeTree, query),
     [query]
   );
@@ -118,11 +223,26 @@ export default function App() {
     : "#4E83E6";
 
   useEffect(() => {
+    if (!initialFitHandledRef.current) {
+      initialFitHandledRef.current = true;
+      if (hasSavedViewportRef.current) return;
+    }
+
     const frame = window.requestAnimationFrame(() => {
       fitView({ padding: 0.2, duration: 320, minZoom: 0.15, maxZoom: 1.2 });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [query, fitView]);
+
+  useEffect(() => {
+    persistViewState();
+  }, [expanded, query, selectedId, canvasOffset, persistViewState]);
+
+  useEffect(() => {
+    const saveBeforePageExit = () => persistViewState();
+    window.addEventListener("pagehide", saveBeforePageExit);
+    return () => window.removeEventListener("pagehide", saveBeforePageExit);
+  }, [persistViewState]);
 
   const handleSearch = (value: string) => {
     setQuery(value);
@@ -197,7 +317,8 @@ export default function App() {
         minZoom={0.12}
         maxZoom={1.6}
         zoomOnDoubleClick={false}
-        fitView
+        defaultViewport={restoredState.viewport ?? undefined}
+        onMoveEnd={handleMoveEnd}
       >
         <Background
           variant={BackgroundVariant.Dots}
