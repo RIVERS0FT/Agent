@@ -215,6 +215,10 @@ export default function App() {
 
   const matchCount = countDescendants(filteredTree.children ?? []);
   const selectedItem = findKnowledgeItem(knowledgeTree, selectedId);
+  const selectedExpandableIds = useMemo(
+    () => selectedItem ? collectExpandableIds(selectedItem) : new Set<string>(),
+    [selectedItem]
+  );
   const selectedPath = useMemo(
     () => findKnowledgePath(knowledgeTree, selectedId),
     [selectedId]
@@ -258,8 +262,21 @@ export default function App() {
     setCanvasOffset({ x: 0, y: 0 });
   };
 
-  const expandAll = () => applyExpanded(collectExpandableIds(knowledgeTree), ROOT_ID);
-  const collapseAll = () => applyExpanded(new Set(), ROOT_ID);
+  const expandAll = () => {
+    if (!selectedItem || selectedExpandableIds.size === 0) return;
+    const nextExpanded = new Set(expandedRef.current);
+    selectedExpandableIds.forEach((id) => nextExpanded.add(id));
+    applyExpanded(nextExpanded, selectedItem.id);
+  };
+
+  const collapseAll = () => {
+    if (!selectedItem || selectedExpandableIds.size === 0) return;
+    const nextExpanded = new Set(expandedRef.current);
+    selectedExpandableIds.forEach((id) => nextExpanded.delete(id));
+    applyExpanded(nextExpanded, selectedItem.id);
+  };
+
+  const canManageSelectedSubtree = selectedExpandableIds.size > 0;
 
   return (
     <main className="map-frame" aria-label="Agent 开发知识图谱">
@@ -288,10 +305,22 @@ export default function App() {
 
       <div className="canvas-function-area" role="group" aria-label="功能区">
         <span className="canvas-function-label">功能区</span>
-        <button type="button" title="全部展开" aria-label="全部展开" onClick={expandAll}>
+        <button
+          type="button"
+          title="展开选中节点及其所有子节点"
+          aria-label="全部展开选中节点及其所有子节点"
+          disabled={!canManageSelectedSubtree}
+          onClick={expandAll}
+        >
           <Expand size={16} />
         </button>
-        <button type="button" title="全部折叠" aria-label="全部折叠" onClick={collapseAll}>
+        <button
+          type="button"
+          title="折叠选中节点及其所有子节点"
+          aria-label="全部折叠选中节点及其所有子节点"
+          disabled={!canManageSelectedSubtree}
+          onClick={collapseAll}
+        >
           <Shrink size={16} />
         </button>
         <button type="button" title="放大" aria-label="放大" onClick={() => zoomIn({ duration: 200 })}>
