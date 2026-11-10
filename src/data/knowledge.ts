@@ -133,8 +133,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "polling-observer", title: "Polling Observer", summary: "定时轮询 API 或环境状态。", description: "使用定时任务读取外部 API、设备或业务系统状态，配置轮询间隔、退避、变化检测和速率限制。", tags: ["Polling", "Scheduler"] }
             ],
             ["Environment", "Events", "Browser"]
-          )
-
+          ),
           capability(
             "multimodal-perception",
             "多模态感知 Multimodal Perception",
@@ -233,8 +232,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "optimization-loop", title: "Optimization Loop", summary: "执行候选生成、评估、选择和版本回滚。", description: "建立 Generate → Evaluate → Select → Deploy 的受控循环，要求候选版本通过离线评测、灰度和安全门禁后才能生效。", tags: ["Optimization", "Regression", "Guardrails"] }
             ],
             ["Learning Loop", "Optimization", "Feedback"]
-          )
-
+          ),
           capability(
             "reasoning-search",
             "搜索式推理 Search-based Reasoning",
@@ -826,8 +824,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "grounded-answer-validator", title: "Grounded Answer Validator", summary: "检查回答是否得到证据支持。", description: "使用规则或评审模型检查引用覆盖、事实忠实度和无依据陈述，对证据不足的问题触发补检索或拒答。", tags: ["Faithfulness", "Evaluation"] }
             ],
             ["Grounding", "Citation", "Faithfulness"]
-          )
-
+          ),
           capability(
             "query-transformation",
             "查询理解与改写 Query Understanding",
@@ -945,8 +942,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "codex-workspace-sandbox-example", title: "Codex · Workspace-write Sandbox", summary: "将文件写入范围限制在工作目录和显式可写目录。", description: "Codex 的 workspace-write sandbox 允许读取文件，并限制写入 cwd 和 writable_roots；访问其他目录需要审批，网络访问由独立策略控制。", tags: ["Codex", "Filesystem Sandbox", "Approval"], resources: [{ label: "Codex Workspace-write Policy", url: "https://github.com/openai/codex/blob/main/codex-rs/prompts/templates/permissions/sandbox_mode/workspace_write.md" }] }
             ],
             ["OAuth", "Policy", "Sandbox"]
-          )
-
+          ),
           capability(
             "tool-runtime-adapters",
             "工具运行时与执行适配 Tool Runtime Adapters",
@@ -1076,8 +1072,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "codex-sqlite-memory-jobs", title: "Codex · SQLite-backed Memory Jobs", summary: "通过 SQLite jobs 表、领取租约和退避重试调度记忆后台任务。", description: "Codex 将每个 rollout 的提取任务和全局整合任务写入 Memory Store；State DB 提供线程元数据，独立 Memory DB 保存 stage1_outputs 与 jobs。Phase 1 使用线程级租约并行处理，Phase 2 使用全局任务租约和文件锁串行写入工作区。", tags: ["Codex", "SQLite", "Job Lease", "Retry"], resources: [{ label: "Codex Memory Job State", url: "https://github.com/openai/codex/blob/main/codex-rs/state/src/runtime/memories.rs" }] }
             ],
             ["Queue", "Durable Execution", "Scheduler"]
-          )
-
+          ),
           capability(
             "workflow-patterns",
             "工作流编排模式 Workflow Patterns",
@@ -1197,8 +1192,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "repair-retry", title: "Repair / Retry", summary: "对格式错误或缺失字段进行有限修复。", description: "将校验错误反馈给模型进行有限重试，设置次数和 Token 上限，并避免自动修复越过权限边界。", tags: ["Retry", "Repair"] }
             ],
             ["Schema", "Parser", "Validation"]
-          )
-
+          ),
           capability(
             "instruction-hierarchy",
             "指令层级与动态加载 Instruction Hierarchy",
@@ -1325,8 +1319,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "multimodal-output", title: "Multimodal Output Adapter", summary: "统一处理文本、图像和结构化多模态输出。", description: "解析模型响应中的文本、图像引用、音频片段和工具调用，按客户端能力转换为可呈现事件。", tags: ["Multimodal", "Output"] }
             ],
             ["Streaming", "Audio", "Multimodal"]
-          )
-
+          ),
           capability(
             "inference-serving",
             "模型推理服务 Inference Serving",
@@ -1427,8 +1420,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "failure-replay", title: "Failure Replay", summary: "重放线上失败轨迹并沉淀回归用例。", description: "脱敏保存输入、模型版本、工具结果和状态快照，在隔离环境中重放并验证修复是否有效。", tags: ["Replay", "Debugging"] }
             ],
             ["CI", "Canary", "Replay"]
-          )
-
+          ),
           capability(
             "agent-trajectory-evaluation",
             "Agent 轨迹与过程评估 Agent Trajectory Evaluation",
@@ -1541,8 +1533,7 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "codex-consolidation-sandbox", title: "Codex · Sandboxed Consolidation Agent", summary: "整合 Agent 禁止网络访问，只能在本地记忆工作区内写入。", description: "Codex Phase 2 为内部 Consolidation Agent 创建受限配置：关闭 MCP Servers、Apps Instructions、Collab 和记忆读写，设置 no-network sandbox 与本地工作区写入边界，并在完成后校验记忆产物。", tags: ["Codex", "Sandbox", "No Network", "Least Privilege"], resources: [{ label: "Codex Phase 2 Implementation", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/phase2.rs" }] }
             ],
             ["Rate Limit", "Budget", "Audit"]
-          )
-
+          ),
           capability(
             "agent-threat-modeling",
             "Agent 威胁建模 Agent Threat Modeling",
