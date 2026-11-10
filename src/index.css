@@ -35,17 +35,6 @@ a { color: inherit; text-decoration: none; }
 .react-flow__node.selected { box-shadow: none; }
 .react-flow__edge-path { stroke-linecap: round; }
 
-.react-flow__controls {
-  overflow: hidden;
-  margin: 0 0 16px 16px;
-  border: 1px solid #e3e9f1;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 3px 12px rgba(36, 58, 88, 0.07);
-}
-.react-flow__controls-button { width: 30px; height: 30px; border-bottom: 1px solid #edf1f6; background: transparent; fill: #66768d; }
-.react-flow__controls-button:hover { background: #f2f6fc; }
-
 .canvas-toolbar, .canvas-actions {
   position: absolute;
   z-index: 10;
@@ -55,7 +44,7 @@ a { color: inherit; text-decoration: none; }
   gap: 9px;
 }
 .canvas-toolbar { left: 16px; }
-.canvas-brand, .canvas-search, .canvas-actions button, .canvas-actions a {
+.canvas-brand, .canvas-search, .canvas-utility-button {
   height: 40px;
   display: inline-flex;
   align-items: center;
@@ -73,9 +62,56 @@ a { color: inherit; text-decoration: none; }
 .canvas-search input::placeholder { color: #a0acbc; }
 .canvas-search input::-webkit-search-cancel-button { display: none; }
 .canvas-search button { width: 22px; height: 22px; display: grid; flex: 0 0 auto; place-items: center; padding: 0; border: 0; border-radius: 6px; color: #8290a3; background: #f1f4f8; }
-.canvas-actions { right: 16px; gap: 6px; }
-.canvas-actions button, .canvas-actions a { width: 38px; justify-content: center; padding: 0; color: #687991; transition: color 150ms ease, border-color 150ms ease, background 150ms ease; }
-.canvas-actions button:hover, .canvas-actions a:hover { border-color: #cbd8ea; color: #356fcf; background: #fff; }
+.canvas-actions { right: 16px; gap: 8px; }
+.canvas-function-area {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 9px;
+  border: 1px solid #e3e9f1;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 3px 12px rgba(36, 58, 88, 0.06);
+  backdrop-filter: blur(12px);
+}
+.canvas-function-label {
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px 0 1px;
+  border-right: 1px solid #e8edf4;
+  color: #8b98aa;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.canvas-function-area button {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #687991;
+  background: transparent;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+.canvas-function-area button:hover,
+.canvas-utility-button:hover {
+  border-color: #cbd8ea;
+  color: #356fcf;
+  background: #fff;
+}
+.canvas-utility-button {
+  width: 38px;
+  justify-content: center;
+  padding: 0;
+  color: #687991;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
 
 .knowledge-node {
   position: relative;
@@ -196,9 +232,11 @@ a { color: inherit; text-decoration: none; }
   .canvas-toolbar { top: 10px; left: 10px; right: 10px; gap: 7px; }
   .canvas-brand { height: 38px; gap: 6px; padding-right: 8px; font-size: 10px; }
   .canvas-search { width: auto; min-width: 0; height: 38px; flex: 1; padding: 0 8px; }
-  .canvas-actions { top: 56px; right: 10px; }
-  .canvas-actions button, .canvas-actions a { width: 34px; height: 34px; }
-  .react-flow__controls { margin: 0 0 10px 10px; }
+  .canvas-actions { top: 56px; right: 10px; gap: 6px; }
+  .canvas-function-area { height: 34px; gap: 2px; padding: 3px 4px 3px 6px; }
+  .canvas-function-label { padding-right: 5px; font-size: 10px; }
+  .canvas-function-area button { width: 28px; height: 28px; }
+  .canvas-utility-button { width: 34px; height: 34px; }
   .detail-panel { top: 100px; right: 10px; bottom: 10px; left: 10px; width: auto; padding: 14px; }
   .detail-section { margin-top: 16px; }
   .canvas-help { display: none; }
