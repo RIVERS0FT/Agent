@@ -25,6 +25,7 @@ import {
   filterKnowledgeTree,
   findKnowledgeColor,
   findKnowledgeItem,
+  findKnowledgePath,
   ROOT_ID
 } from "./lib/graph";
 
@@ -107,6 +108,10 @@ export default function App() {
 
   const matchCount = countDescendants(filteredTree.children ?? []);
   const selectedItem = findKnowledgeItem(knowledgeTree, selectedId);
+  const selectedPath = useMemo(
+    () => findKnowledgePath(knowledgeTree, selectedId),
+    [selectedId]
+  );
   const selectedNode = graph.nodes.find((node) => node.id === selectedId);
   const selectedColor = selectedItem
     ? (findKnowledgeColor(knowledgeTree, selectedItem.id) ?? "#4E83E6")
@@ -215,6 +220,7 @@ export default function App() {
       {selectedItem && (
         <DetailPanel
           item={selectedItem}
+          path={selectedPath}
           color={selectedColor}
           kind={selectedNode?.data.kind ?? "implementation"}
           onClose={() => setSelectedId(null)}
