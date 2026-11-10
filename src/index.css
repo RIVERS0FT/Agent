@@ -133,8 +133,27 @@ a { color: inherit; text-decoration: none; }
 .detail-breadcrumb { flex: 1; min-width: 0; padding-top: 6px; }
 .detail-breadcrumb ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 3px; margin: 0; padding: 0; list-style: none; }
 .detail-breadcrumb li { display: inline-flex; align-items: center; gap: 3px; min-width: 0; max-width: 100%; color: #8b99ab; font-size: 11px; line-height: 1.6; }
-.detail-breadcrumb li span { overflow-wrap: anywhere; }
-.detail-breadcrumb li [aria-current="page"] { color: #344b69; font-weight: 700; }
+.detail-breadcrumb li span,
+.detail-breadcrumb-link { overflow-wrap: anywhere; }
+.detail-breadcrumb-link {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  color: #71839a;
+  background: transparent;
+  font: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+.detail-breadcrumb-link:hover { color: #356fcf; text-decoration: underline; text-underline-offset: 2px; }
+.detail-breadcrumb-link:focus-visible {
+  outline: 2px solid #8db4f1;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.detail-breadcrumb-current { color: #344b69; font-weight: 700; }
 .detail-breadcrumb-separator { flex: 0 0 auto; color: #b2bdcb; }
 .detail-panel-eyebrow { color: #7e8da2; font-family: "DM Mono", monospace; font-size: 9px; letter-spacing: 0.12em; }
 .detail-panel-status { padding: 3px 6px; border-radius: 4px; color: #8491a4; background: #f2f5f9; font-size: 9px; }
