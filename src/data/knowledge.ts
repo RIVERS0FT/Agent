@@ -1,4 +1,5 @@
 import type { KnowledgeItem, KnowledgeResource } from "../types";
+import { agentLoopPatterns } from "./agentLoops";
 
 type NodeOptions = {
   tags?: string[];
@@ -81,11 +82,12 @@ export const knowledgeTree: KnowledgeItem = node(
   "agent-root",
   "Agent 系统",
   "由感知、推理、记忆、知识、工具和运行治理等模块组成的目标驱动系统。",
-  "Agent 不是单一的大模型调用，而是一套围绕目标持续运行的软件系统。它接收输入、理解环境、组织上下文、进行推理规划、调用工具、读写记忆，并通过评估和反馈持续修正行为。知识图谱按照 Agent 的功能模块组织知识，每个模块继续拆分为内部能力与可落地的技术实现。",
+  "Agent 不是单一的大模型调用，而是一套围绕目标持续运行的软件系统。它接收输入、理解环境、组织上下文、进行推理规划、调用工具、读写记忆，并通过评估和反馈持续修正行为。知识图谱以功能模块组织主体知识，同时提供独立的 Agent Loop Patterns 跨模块索引，描述这些能力在运行时如何形成嵌套、并行和带反馈的控制循环。",
   [
     "二级节点代表 Agent 的功能模块，回答系统由什么组成。",
     "三级节点代表模块内部能力，回答每个模块需要完成什么工作。",
-    "四级节点代表具体技术实现，回答工程上可以用什么方法和组件落地。"
+    "四级节点代表具体技术实现，回答工程上可以用什么方法和组件落地。",
+    "Agent Loop Patterns 是跨模块索引，用于串联各模块中的循环控制模式，不替代原有模块分类。"
   ],
   {
     tags: ["Agent Architecture", "Modules", "Capabilities", "Implementations"],
@@ -1626,6 +1628,7 @@ export const knowledgeTree: KnowledgeItem = node(
             ],
             ["Classification", "Residency", "Consent", "Deletion", "Audit"]
           ),
+          agentLoopPatterns
         ]
       )
     ]
