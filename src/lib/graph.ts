@@ -47,7 +47,7 @@ export function buildGraph(
   const searching = query.trim().length > 0;
 
   const getVisibleChildren = (item: KnowledgeItem): KnowledgeItem[] => {
-    const shouldExpand = item.id === ROOT_ID || searching || expanded.has(item.id);
+    const shouldExpand = searching || expanded.has(item.id);
     return shouldExpand ? (item.children ?? []) : [];
   };
 
@@ -86,7 +86,7 @@ export function buildGraph(
       kind,
       color,
       indexLabel: moduleIndex > 0 ? String(moduleIndex).padStart(2, "0") : undefined,
-      expanded: children.length > 0 || kind === "root",
+      expanded: children.length > 0,
       hasChildren: (item.children?.length ?? 0) > 0,
       selected: selectedId === item.id,
       onToggle
