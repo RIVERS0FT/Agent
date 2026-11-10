@@ -6,10 +6,11 @@ type DetailPanelProps = {
   path: KnowledgeItem[];
   color: string;
   kind: KnowledgeNodeData["kind"];
+  onNavigate: (id: string) => void;
   onClose: () => void;
 };
 
-export function DetailPanel({ item, path, color, kind, onClose }: DetailPanelProps) {
+export function DetailPanel({ item, path, color, kind, onNavigate, onClose }: DetailPanelProps) {
   return (
     <aside className="detail-panel" aria-label="知识节点详情">
       <div className="detail-panel-top">
@@ -18,9 +19,20 @@ export function DetailPanel({ item, path, color, kind, onClose }: DetailPanelPro
             {path.map((ancestor, index) => (
               <li key={ancestor.id}>
                 {index > 0 && <ChevronRight className="detail-breadcrumb-separator" size={13} />}
-                <span aria-current={index === path.length - 1 ? "page" : undefined}>
-                  {ancestor.title}
-                </span>
+                {index === path.length - 1 ? (
+                  <span className="detail-breadcrumb-current" aria-current="page">
+                    {ancestor.title}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="detail-breadcrumb-link"
+                    onClick={() => onNavigate(ancestor.id)}
+                    title={`跳转到 ${ancestor.title}`}
+                  >
+                    {ancestor.title}
+                  </button>
+                )}
               </li>
             ))}
           </ol>
