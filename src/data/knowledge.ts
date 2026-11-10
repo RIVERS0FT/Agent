@@ -231,13 +231,13 @@ export const knowledgeTree: KnowledgeItem = node(
               {
                 id: "codex-memory-extraction",
                 title: "Codex · Rollout Extraction",
-                summary: "后台扫描符合条件的历史线程，逐线程提取可复用经验。",
-                description: "启用 Local Memories 后，Codex 在根会话启动时异步筛选历史 rollout：只处理允许的交互会话来源、年龄和空闲时间符合阈值、尚未被其他任务领取且处于批次上限内的线程。模型读取经过过滤的对话内容并输出结构化记忆；无长期价值时允许空结果，生成字段会进行 Secret Redaction。",
+                summary: "开启 Local Memories 后，在后台扫描符合条件的历史线程并逐线程提取经验。",
+                description: "Codex Local Memories 默认关闭；启用后，Codex 在后台异步筛选历史 rollout，而不是在每轮对话结束时立即写入。候选线程需满足来源、年龄和空闲时间条件，并通过批次、领取状态及速率限制检查。模型读取过滤后的对话并生成结构化记忆；没有长期价值时允许返回空结果，生成字段会进行 Secret Redaction。外部工具或网页上下文是否允许参与提取，还可由配置控制。"
                 points: [
                   "Phase 1 先从 State DB 领取候选线程，再按并发上限并行提取；领取租约用于避免重复处理，失败任务使用退避重试。",
                   "v1 输出 raw_memory、rollout_summary 和可选 rollout_slug；v2 改为更重视任务边界、用户原话、操作证据和结果状态的 task-first rollout_summary。",
-                  "跳过活跃或短期线程；空闲阈值、最大历史天数、每次启动处理量和提取模型均可配置。",
-                  "提取结果先写入 State DB，尚不是最终注入上下文的精简记忆。"
+                  "跳过活跃或短期线程；空闲阈值、最大历史天数、每次启动处理量和提取模型均可配置，默认空闲阈值为 6 小时、最大历史年龄为 30 天。",
+                  "提取结果先写入 State DB，尚不是最终注入上下文的精简记忆；功能开关与每个会话的生成许可分别控制是否参与未来记忆生成。"
                 ],
                 tags: ["Codex", "Phase 1", "Rollout", "Secret Redaction"],
                 resources: [
@@ -373,12 +373,12 @@ export const knowledgeTree: KnowledgeItem = node(
                 id: "codex-memory-consolidation",
                 title: "Codex · Global Consolidation",
                 summary: "Phase 2 使用全局锁和独立 Agent 整理跨线程记忆。",
-                description: "Codex 在逐线程 Phase 1 之后运行 Phase 2。它先获取全局工作区锁，再按使用次数、最近使用时间和保留窗口选择 Stage 1 记录，同步文件并计算 Git Workspace Diff；只有发生变化时才启动受限的 Consolidation Agent。v1 与 v2 的最终摘要格式不同。",
+                description: "Codex 在逐线程 Phase 1 之后运行 Phase 2。它先获取全局工作区锁，再按使用情况和保留条件选择 Stage 1 记录，同步文件并计算 Git Workspace Diff；只有发生变化时才启动受限的 Consolidation Agent。v1 与 v2 的最终摘要格式不同。配置中的 max_unused_days 控制记忆多久未被使用后不再进入整合候选，并不等同于逐条 TTL 或立即删除。"
                 points: [
                   "全局锁保证同一份 memory workspace 不会被多个整合任务同时修改；State DB watermark 记录已处理输入。",
                   "v1 将 raw_memories.md 和 rollout_summaries/ 同步到工作区，再由 Agent 更新 MEMORY.md、memory_summary.md 和可选 skills。",
                   "v2 更强调生成紧凑的 memory_summary.md：区分用户明确偏好与单次任务决策，按项目和日期组织历史指针，并限制摘要体积。",
-                  "整合 Agent 在本地受限环境中运行；成功后重置 Git 基线，过期 rollout summaries 和扩展资源会被清理。"
+                  "整合 Agent 在本地受限环境中运行；成功后重置 Git 基线，并按整合策略清理已不再需要的 rollout summaries 和扩展资源。max_unused_days 默认 30 天，表示失去整合资格，不应误读为记忆文件到期即删除。"
                 ],
                 tags: ["Codex", "Phase 2", "Consolidation Agent", "Git Diff"],
                 resources: [
@@ -399,9 +399,117 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "memory-ttl", title: "TTL / Expiration", summary: "为临时记忆设置过期时间。", description: "为会话状态、短期事实和临时授权设置 TTL，使用 Redis TTL、数据库清理任务或生命周期策略自动清除。", tags: ["TTL", "Expiration"] },
               { id: "memory-decay", title: "Importance Decay", summary: "根据时间和使用频率调整记忆权重。", description: "结合时间衰减、访问频率、重要性和用户确认更新检索分数，降低陈旧信息的优先级。", tags: ["Decay", "Importance", "Recency"] },
               { id: "memory-forgetting", title: "Forgetting Policy", summary: "按规则淘汰低价值或过期记忆。", description: "定义容量上限、淘汰优先级和保护规则，确保关键事实、审计记录和用户明确保留的信息不会被随意清除。", tags: ["Forgetting", "Retention"] },
-              { id: "memory-user-controls", title: "User Correction & Deletion", summary: "允许用户查看、纠正和删除记忆。", description: "提供记忆来源、修改记录和删除接口，并同步清理缓存、向量索引和派生摘要，防止删除后又被重新召回。", tags: ["Privacy", "User Control", "Deletion"] }
+              { id: "memory-user-controls", title: "User Correction & Deletion", summary: "允许用户查看、纠正和删除记忆。", description: "提供记忆来源、修改记录和删除接口，并同步清理缓存、向量索引和派生摘要，防止删除后又被重新召回。", tags: ["Privacy", "User Control", "Deletion"] },
+              {
+                id: "claude-memory-lifecycle",
+                title: "Claude Code · Persistent Local Memory",
+                summary: "Auto Memory 不随会话 Transcript 清理自动过期，直到用户或 Claude 修改、删除。",
+                description: "Claude Code 的 cleanupPeriodDays 只清理旧会话 Transcript，Auto Memory 目录被排除在清理范围之外。MEMORY.md 的 200 行或 25KB 限制是启动加载预算，不是 TTL；接近上限时 Claude 会整理索引、移动细节或清除过时条目。主题文件持续保留，直到用户或 Claude 修改、删除。",
+                points: [
+                  "本地交互会话默认开启 Auto Memory；可通过 /memory、autoMemoryEnabled 或 CLAUDE_CODE_DISABLE_AUTO_MEMORY 控制。",
+                  "Transcript 清理不会删除 MEMORY.md 和主题文件；记忆目录中的文件会一直保留，除非被编辑或删除。",
+                  "启动时只加载 MEMORY.md 前 200 行或 25KB；超限影响索引可见范围，并触发整理提示，不代表系统自动执行 TTL。",
+                  "用户可以通过 /memory 浏览、编辑或删除 Markdown 文件；维护时应同时检查索引与被索引的主题文件。"
+                ],
+                tags: ["Claude Code", "Retention", "Manual Deletion", "No TTL"],
+                resources: [
+                  { label: "Claude Code Memory 官方文档", url: "https://code.claude.com/docs/en/memory" }
+                ]
+              },
+              {
+                id: "codex-memory-lifecycle",
+                title: "Codex · Configurable Memory Lifecycle",
+                summary: "通过全局开关、逐会话读写控制和后台筛选管理记忆生命周期。",
+                description: "Codex Local Memories 默认关闭。启用后，后台任务只处理满足空闲时间、历史年龄、批次和速率限制的线程；/memories 可以分别控制当前会话是否读取已有记忆、是否贡献未来记忆。max_unused_days 只让长期未使用的记忆失去整合资格，并非逐条过期删除；用户可通过 Delete Codex memories 重置整台机器的本地记忆库。",
+                points: [
+                  "全局功能默认关闭；开启后仍可用 /memories 或 memories.use_memories、memories.generate_memories 分别控制读取和生成。",
+                  "后台生成跳过活跃或短期线程；默认最少空闲 6 小时、候选线程最大年龄 30 天，每次启动最多处理 16 个候选线程。",
+                  "min_rate_limit_remaining_percent 可阻止额度不足时启动生成；生成字段会进行 Secret Redaction。",
+                  "max_unused_days 默认 30 天，含义是超过未使用窗口后不再参与整合，不是 TTL 或自动删除时间。",
+                  "可通过 Settings > Personalization 中的 Delete Codex memories 清空本机记忆库；/memories 提供逐会话读写控制。"
+                ],
+                tags: ["Codex", "Retention", "Background Jobs", "User Controls"],
+                resources: [
+                  { label: "Codex Memories 官方文档", url: "https://learn.chatgpt.com/docs/customization/memories" },
+                  { label: "Codex Configuration Reference", url: "https://learn.chatgpt.com/docs/config-file/config-reference" }
+                ]
+              }
             ],
-            ["TTL", "Forgetting", "Privacy"]
+            ["TTL", "Forgetting", "Privacy", "Claude Code", "Codex"]
+          ),
+          capability(
+            "memory-instruction-boundary",
+            "指令与记忆边界 Instructions vs Memory",
+            "区分需要稳定遵循的人工指令，与从历史工作中提取的辅助记忆。",
+            "指令文件承载明确、可审查、可随仓库共享的规则；自动记忆承载偏好、纠正和历史经验。两者都可能进入模型上下文，但不等于权限系统或硬性执行约束。必须始终遵循的团队规则应写入指令文件；安全边界应由权限、Hook 或沙箱执行。",
+            [
+              {
+                id: "claude-instruction-memory-boundary",
+                title: "Claude Code · CLAUDE.md + Auto Memory",
+                summary: "CLAUDE.md 保存人工规则，Auto Memory 保存 Claude 自动归纳的经验。",
+                description: "CLAUDE.md 由用户或团队维护，用于编码规范、工作流和项目架构，可按用户、项目或组织范围加载。Auto Memory 由 Claude 写入，保存偏好、纠正、项目背景和外部信息索引。官方将两者定义为互补系统；它们作为上下文提供给模型，不是强制执行配置。Claude Code 也能在符合配置条件时读取 AGENTS.md。",
+                points: [
+                  "CLAUDE.md：人维护的持久指令，适合编码规范、测试命令、项目架构和团队约定；可通过层级与规则文件划分作用范围。",
+                  "Auto Memory：Claude 自动维护的学习记录，适合用户偏好、反馈纠正、无法从代码推导的项目状态和外部参考位置。",
+                  "两者都在会话开始时提供上下文，但职责不同；Auto Memory 的 MEMORY.md 只加载前 200 行或 25KB。",
+                  "当前版本可按 Project instructions 设置读取 AGENTS.md；默认在工作目录及上级目录没有 CLAUDE.md 时读取 AGENTS.md。",
+                  "如果需要无论模型如何判断都禁止某项操作，应使用 PreToolUse Hook 或权限控制，而不是依赖记忆文本。"
+                ],
+                tags: ["Claude Code", "CLAUDE.md", "Auto Memory", "Instructions"],
+                resources: [
+                  { label: "Claude Code Memory 官方文档", url: "https://code.claude.com/docs/en/memory" }
+                ]
+              },
+              {
+                id: "codex-instruction-memory-boundary",
+                title: "Codex · AGENTS.md + Local Memories",
+                summary: "AGENTS.md 负责项目规则，Local Memories 负责本机历史经验召回。",
+                description: "Codex 在任务开始前读取 AGENTS.md 指令链，可从全局配置、仓库根目录和子目录逐层合并；项目文件可随仓库提交并供团队共享。Local Memories 则保存在 CODEX_HOME 下，是可选的本机辅助召回层。OpenAI 文档明确建议：必须始终适用的团队指导写入 AGENTS.md 或仓库文档，不要只依赖 Memories。",
+                points: [
+                  "AGENTS.md：承载项目构建、测试、代码风格和工作约定；全局与项目级文件按目录层级合并，子目录可追加或覆盖更具体的指导。",
+                  "Local Memories：从历史任务中提取可复用背景和经验，默认关闭，存储在本机 CODEX_HOME，不随仓库自动共享。",
+                  "/memories 可针对当前会话分别控制是否读取已有记忆、是否作为未来记忆生成输入；这不替代全局配置。",
+                  "AGENTS.md 是持久指令，Memory 是辅助回忆，Skills 是可复用工作流，MCP 是外部系统连接，四者职责不同。",
+                  "必须始终执行的规则应放入 AGENTS.md 或受控策略；不要把记忆当成唯一规则来源。"
+                ],
+                tags: ["Codex", "AGENTS.md", "Local Memories", "Instructions"],
+                resources: [
+                  { label: "Codex AGENTS.md 官方文档", url: "https://learn.chatgpt.com/docs/agent-configuration/agents-md" },
+                  { label: "Codex Memories 官方文档", url: "https://learn.chatgpt.com/docs/customization/memories" }
+                ]
+              }
+            ],
+            ["Instructions", "CLAUDE.md", "AGENTS.md", "Auto Memory", "Local Memories"]
+          ),
+          capability(
+            "memory-architecture-comparison",
+            "产品架构对比 Architecture Comparison",
+            "从触发、写入、存储、读取和治理五个维度比较真实产品的记忆架构。",
+            "Claude Code 与 Codex 都采用本地文件和渐进式上下文加载，但记忆写入路径不同。Claude 偏向会话内持续维护仓库级 Markdown 记忆；Codex 偏向后台逐线程提取，再通过全局整合 Agent 形成摘要和证据库。该对比以公开文档与当前开源实现为依据。",
+            [
+              {
+                id: "claude-codex-memory-architecture",
+                title: "Claude Code vs Codex · Architecture Trade-offs",
+                summary: "Claude 偏会话内持续维护；Codex 偏后台两阶段提取与全局整合。",
+                description: "Claude 将 Auto Memory 作为会话中的持续读写能力：模型直接维护 MEMORY.md 索引和主题文件，按需读取细节。Codex 将 Local Memories 设计成异步流水线：Phase 1 从历史 rollout 提取候选记忆，Phase 2 集中整合为摘要、索引和可选扩展。两者的主要差别是写入触发与整合边界，而不是简单的 Markdown 与数据库之争。",
+                points: [
+                  "触发方式：Claude 在会话工作过程中决定何时记录或回忆；Codex 在功能开启后等待历史线程达到空闲条件，再由后台任务处理。",
+                  "写入架构：Claude 直接读写 MEMORY.md 与主题文件，没有公开的独立全局整合阶段；Codex 使用逐线程 Phase 1 和全局 Phase 2。",
+                  "存储范围：Claude 按 Git 仓库建立本机记忆目录，同一仓库的 worktree 共享；Codex 将记忆放在本机 CODEX_HOME 下，并以 rollout 记录项目和任务来源。",
+                  "读取方式：Claude 启动时加载 MEMORY.md 前 200 行或 25KB，再按需读取主题文件；Codex 注入 memory_summary，并通过 Search、List、Read 深入查看 MEMORY.md 或 rollout summaries。",
+                  "生命周期：Claude 记忆不会随 Transcript 清理自动过期，主要由用户或 Claude 编辑、删除；Codex 提供全局开关、逐会话读写控制、候选窗口和整库重置。",
+                  "指令边界：Claude 的 CLAUDE.md 与 Auto Memory 分工；Codex 的 AGENTS.md 与 Local Memories 分工。两者都不应把辅助记忆当成硬性权限策略。",
+                  "设计取舍：Claude 路径更直接、低延迟、易人工检查，但跨主题全局归并依赖模型持续维护；Codex 的后台整合和 rollout 证据链更系统，但配置、后台调度和额度门槛更复杂。"
+                ],
+                tags: ["Architecture Comparison", "Claude Code", "Codex", "Trade-offs"],
+                resources: [
+                  { label: "Claude Code Memory 官方文档", url: "https://code.claude.com/docs/en/memory" },
+                  { label: "Codex Memories 官方文档", url: "https://learn.chatgpt.com/docs/customization/memories" },
+                  { label: "Codex Memory Pipeline", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/README.md" }
+                ]
+              }
+            ],
+            ["Architecture", "Claude Code", "Codex", "Trade-offs"]
           )
         ]
       ),
