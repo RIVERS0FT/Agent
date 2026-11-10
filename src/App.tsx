@@ -152,7 +152,6 @@ export default function App() {
                 <X size={15} />
               </button>
             )}
-            <kbd>/</kbd>
           </label>
 
           <div className="toolbar-actions">
