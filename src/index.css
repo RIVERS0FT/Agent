@@ -284,3 +284,12 @@ a { color: inherit; text-decoration: none; }
 .detail-tags span { font-size: 11px; }
 .detail-child-item strong { font-size: 12px; }
 .detail-resources a { font-size: 12px; }
+
+.node-root .node-title { margin: 0; }
+.node-root .node-summary,
+.node-module .node-summary,
+.node-capability .node-summary,
+.node-implementation .node-summary {
+  font-size: 12px;
+  line-height: 1.7;
+}
