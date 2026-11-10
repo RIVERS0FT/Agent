@@ -329,11 +329,8 @@ export default function App() {
         <button type="button" title="缩小" aria-label="缩小" onClick={() => zoomOut({ duration: 200 })}>
           <ZoomOut size={16} />
         </button>
-      </div>
-
-      <div className="canvas-actions" aria-label="其他画布操作">
+        <span className="canvas-function-divider" aria-hidden="true" />
         <button
-          className="canvas-utility-button"
           type="button"
           title="适配画布"
           aria-label="适配画布"
@@ -342,7 +339,6 @@ export default function App() {
           <Scan size={16} />
         </button>
         <a
-          className="canvas-utility-button"
           href="https://github.com/RIVERS0FT/Agent"
           target="_blank"
           rel="noreferrer"
