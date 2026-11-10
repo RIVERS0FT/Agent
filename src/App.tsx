@@ -345,6 +345,7 @@ export default function App() {
           path={selectedPath}
           color={selectedColor}
           kind={selectedNode?.data.kind ?? "implementation"}
+          onNavigate={setSelectedId}
           onClose={() => setSelectedId(null)}
         />
       )}
