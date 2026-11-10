@@ -4,7 +4,8 @@ import type { KnowledgeItem, KnowledgeNodeData } from "../types";
 export const ROOT_ID = "agent-root";
 
 const COLUMN_GAP = 360;
-const ROW_GAP = 148;
+const NODE_HEIGHT = 66;
+const SIBLING_GAP = 10;
 
 type KnowledgeFlowNode = Node<KnowledgeNodeData, "knowledge">;
 
@@ -51,22 +52,66 @@ export function buildGraph(
     return shouldExpand ? (item.children ?? []) : [];
   };
 
-  const measure = (item: KnowledgeItem): number => {
-    const children = getVisibleChildren(item);
-    if (children.length === 0) return 1;
-    return children.reduce((total, child) => total + measure(child), 0);
+  type TidyLayout = {
+    item: KnowledgeItem;
+    depth: number;
+    height: number;
+    centerOffset: number;
+    childOffsets: number[];
+    children: TidyLayout[];
+  };
+
+  // Build compact subtree geometry from the fixed card height and a fixed
+  // minimum gap between sibling subtrees. Parent cards are centered over
+  // the first and last child centers, and the subtree bounds include the
+  // parent card so neighboring branches can never overlap.
+  const measure = (item: KnowledgeItem, depth: number): TidyLayout => {
+    const children = getVisibleChildren(item).map((child) => measure(child, depth + 1));
+    if (children.length === 0) {
+      return {
+        item,
+        depth,
+        height: NODE_HEIGHT,
+        centerOffset: NODE_HEIGHT / 2,
+        childOffsets: [],
+        children
+      };
+    }
+
+    const childTops: number[] = [];
+    let cursor = 0;
+    for (const child of children) {
+      childTops.push(cursor);
+      cursor += child.height + SIBLING_GAP;
+    }
+    const childrenHeight = cursor - SIBLING_GAP;
+    const firstCenter = childTops[0] + children[0].centerOffset;
+    const lastIndex = children.length - 1;
+    const lastCenter = childTops[lastIndex] + children[lastIndex].centerOffset;
+    const parentCenter = (firstCenter + lastCenter) / 2;
+    const parentTop = parentCenter - NODE_HEIGHT / 2;
+    const top = Math.min(0, parentTop);
+    const bottom = Math.max(childrenHeight, parentTop + NODE_HEIGHT);
+    const offset = -top;
+
+    return {
+      item,
+      depth,
+      height: bottom - top,
+      centerOffset: parentCenter + offset,
+      childOffsets: childTops.map((childTop) => childTop + offset),
+      children
+    };
   };
 
   const walk = (
-    item: KnowledgeItem,
-    depth: number,
-    topRow: number,
+    layout: TidyLayout,
+    top: number,
     parentId: string | null,
     inheritedColor: string
   ): void => {
-    const children = getVisibleChildren(item);
-    const rowSpan = measure(item);
-    const centerRow = topRow + rowSpan / 2;
+    const { item, depth, children } = layout;
+    const centerY = top + layout.centerOffset;
     const kind: KnowledgeNodeData["kind"] =
       depth === 0
         ? "root"
@@ -95,7 +140,7 @@ export function buildGraph(
     nodes.push({
       id: item.id,
       type: "knowledge",
-      position: { x: depth * COLUMN_GAP, y: centerRow * ROW_GAP },
+      position: { x: depth * COLUMN_GAP, y: centerY },
       data,
       selected: selectedId === item.id,
       draggable: false,
@@ -104,7 +149,8 @@ export function buildGraph(
         width:
           kind === "root" ? 300 :
           kind === "module" ? 278 :
-          kind === "capability" ? 258 : 248
+          kind === "capability" ? 258 : 248,
+        height: NODE_HEIGHT
       }
     });
 
@@ -123,14 +169,13 @@ export function buildGraph(
       });
     }
 
-    let cursor = topRow;
-    for (const child of children) {
-      walk(child, depth + 1, cursor, item.id, color);
-      cursor += measure(child);
-    }
+    children.forEach((child, index) => {
+      walk(child, top + layout.childOffsets[index], item.id, color);
+    });
   };
 
-  walk(root, 0, 0, null, "#4E83E6");
+  const rootLayout = measure(root, 0);
+  walk(rootLayout, 0, null, "#4E83E6");
   return { nodes, edges };
 }
 
