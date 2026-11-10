@@ -8,35 +8,16 @@ type DetailPanelProps = {
   onClose: () => void;
 };
 
-const kindLabels: Record<KnowledgeNodeData["kind"], string> = {
-  root: "AGENT SYSTEM",
-  module: "AGENT MODULE",
-  capability: "MODULE CAPABILITY",
-  implementation: "TECH IMPLEMENTATION"
-};
-
-const kindNames: Record<KnowledgeNodeData["kind"], string> = {
-  root: "系统总览",
-  module: "Agent 模块",
-  capability: "模块能力",
-  implementation: "技术实现"
-};
-
 export function DetailPanel({ item, color, kind, onClose }: DetailPanelProps) {
   return (
     <aside className="detail-panel" aria-label="知识节点详情">
       <div className="detail-panel-top">
-        <div>
-          <span className="detail-panel-eyebrow">NODE INSIGHT</span>
-          <span className="detail-panel-status">{kindNames[kind]}</span>
-        </div>
         <button type="button" className="icon-button" onClick={onClose} aria-label="关闭详情">
           <X size={18} />
         </button>
       </div>
 
       <div className="detail-accent" style={{ background: color }} />
-      <div className="detail-kind">{kindLabels[kind]}</div>
       <h2>{item.title}</h2>
       <p className="detail-summary">{item.summary}</p>
 
@@ -108,11 +89,6 @@ export function DetailPanel({ item, color, kind, onClose }: DetailPanelProps) {
           </div>
         </section>
       )}
-
-      <div className="detail-panel-foot">
-        <span className="detail-foot-dot" />
-        点击画布空白处可关闭详情
-      </div>
     </aside>
   );
 }

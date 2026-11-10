@@ -8,19 +8,30 @@ type KnowledgeFlowNode = Node<KnowledgeNodeData, "knowledge">;
 function ExpandButton({ data }: { data: KnowledgeNodeData }) {
   if (!data.hasChildren || data.kind === "root") return null;
 
+  const count = data.item.children?.length ?? 0;
+
   return (
-    <button
-      type="button"
-      className="expand-node-button nodrag"
-      aria-label={data.expanded ? "收起下级节点" : "展开下级节点"}
-      title={data.expanded ? "收起下级节点" : "展开下级节点"}
-      onClick={(event) => {
-        event.stopPropagation();
-        data.onToggle(data.item.id);
-      }}
-    >
-      {data.expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
-    </button>
+    <div className="node-expand-control">
+      <button
+        type="button"
+        className="expand-node-button nodrag"
+        aria-label={data.expanded ? "收起下级节点" : "展开下级节点"}
+        title={data.expanded ? "收起下级节点" : "展开下级节点"}
+        onClick={(event) => {
+          event.stopPropagation();
+          data.onToggle(data.item.id);
+        }}
+      >
+        {data.expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
+      </button>
+      <span
+        className="node-child-count"
+        title={count + " 个下级节点"}
+        aria-label={count + " 个下级节点"}
+      >
+        {count}
+      </span>
+    </div>
   );
 }
 
@@ -32,12 +43,6 @@ export function KnowledgeNode({ data, selected }: NodeProps<KnowledgeFlowNode>) 
 
   const accentStyle = { "--node-accent": data.color } as CSSProperties;
   const childCount = data.item.children?.length ?? 0;
-  const countLabel =
-    data.kind === "root"
-      ? childCount + " 个模块"
-      : data.kind === "module"
-        ? childCount + " 项能力"
-        : childCount + " 种技术实现";
 
   return (
     <div className={className} style={accentStyle}>
@@ -61,21 +66,31 @@ export function KnowledgeNode({ data, selected }: NodeProps<KnowledgeFlowNode>) 
         />
       )}
 
-      <div className="node-main">
+      <div className="node-header">
         {data.kind === "root" ? (
           <h2 className="node-title">{data.item.title}</h2>
         ) : (
           <h3 className="node-title">{data.item.title}</h3>
         )}
-        <p className="node-summary">{data.item.summary}</p>
+
+        {data.hasChildren && (
+          <div className="node-actions">
+            {data.kind === "root" ? (
+              <span
+                className="node-child-count node-root-count"
+                title={childCount + " 个模块"}
+                aria-label={childCount + " 个模块"}
+              >
+                {childCount}
+              </span>
+            ) : (
+              <ExpandButton data={data} />
+            )}
+          </div>
+        )}
       </div>
 
-      {data.hasChildren && (
-        <div className="node-footer">
-          <span className="node-child-count">{countLabel}</span>
-          <ExpandButton data={data} />
-        </div>
-      )}
+      <p className="node-summary">{data.item.summary}</p>
     </div>
   );
 }
