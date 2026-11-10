@@ -218,6 +218,12 @@ export default function App() {
     () => findKnowledgePath(knowledgeTree, selectedId),
     [selectedId]
   );
+  const selectedRelatedItems = useMemo(
+    () => (selectedItem?.relatedIds ?? [])
+      .map((id) => findKnowledgeItem(knowledgeTree, id))
+      .filter((item): item is NonNullable<typeof item> => item !== null),
+    [selectedItem]
+  );
   const selectedNode = graph.nodes.find((node) => node.id === selectedId);
   const selectedColor = selectedItem
     ? (findKnowledgeColor(knowledgeTree, selectedItem.id) ?? "#4E83E6")
@@ -343,6 +349,7 @@ export default function App() {
         <DetailPanel
           item={selectedItem}
           path={selectedPath}
+          relatedItems={selectedRelatedItems}
           color={selectedColor}
           kind={selectedNode?.data.kind ?? "implementation"}
           onNavigate={setSelectedId}
