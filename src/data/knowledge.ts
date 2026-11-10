@@ -211,9 +211,43 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "llm-memory-extraction", title: "LLM Structured Extraction", summary: "通过 LLM 将对话转成结构化记忆。", description: "定义 Memory Schema，让模型抽取内容、类型、实体、时间、来源和置信度，并通过 JSON Schema 校验。", tags: ["LLM", "JSON Schema", "Extraction"] },
               { id: "memory-ner", title: "Entity Extraction / NER", summary: "识别人名、组织、项目和实体关系。", description: "使用 NER、实体链接和规范化规则识别实体，将不同称呼映射到统一 ID，并保留原始文本证据。", tags: ["NER", "Entity Linking"] },
               { id: "event-extraction", title: "Event Extraction", summary: "抽取事件、参与者、时间和结果。", description: "将任务经历表示为事件记录，包含主体、动作、对象、时间、结果和上下文，支持后续情节记忆检索。", tags: ["Event", "Episodic Memory"] },
-              { id: "preference-extraction", title: "Preference Extraction", summary: "识别稳定偏好、习惯和用户明确要求。", description: "区分明确表达与模型推断，记录偏好适用范围、置信度和最后确认时间，并提供用户纠正入口。", tags: ["User Preference", "Profile"] }
+              { id: "preference-extraction", title: "Preference Extraction", summary: "识别稳定偏好、习惯和用户明确要求。", description: "区分明确表达与模型推断，记录偏好适用范围、置信度和最后确认时间，并提供用户纠正入口。", tags: ["User Preference", "Profile"] },
+              {
+                id: "claude-memory-extraction",
+                title: "Claude Code · Auto Memory",
+                summary: "在会话工作过程中识别值得跨会话保留的经验。",
+                description: "Claude Code 将自动记忆分为 user、feedback、project、reference 四类。它优先保留用户偏好与纠正、不能从代码或 Git 历史推导的项目背景，以及外部信息的位置；会跳过代码库中已经可推导的事实和 CLAUDE.md 已写明的内容。官方没有公开固定的逐轮提取模型或确定性触发算法。",
+                points: [
+                  "user：用户角色、专业背景和工作偏好；feedback：用户纠正和确认有效的做法。",
+                  "project：进行中的工作、决策和截止时间；reference：Issue Tracker、看板等外部信息位置。",
+                  "不是每轮都写入，Claude 根据未来复用价值决定是否保存；本地交互会话默认开启 Auto Memory。",
+                  "记忆是模型可参考的上下文，不是强制执行策略；敏感或高风险规则仍应由权限和 Hook 机制约束。"
+                ],
+                tags: ["Claude Code", "Auto Memory", "User Feedback"],
+                resources: [
+                  { label: "Claude Code Memory 官方文档", url: "https://code.claude.com/docs/en/memory" }
+                ]
+              },
+              {
+                id: "codex-memory-extraction",
+                title: "Codex · Rollout Extraction",
+                summary: "后台扫描符合条件的历史线程，逐线程提取可复用经验。",
+                description: "启用 Local Memories 后，Codex 在根会话启动时异步筛选历史 rollout：只处理允许的交互会话来源、年龄和空闲时间符合阈值、尚未被其他任务领取且处于批次上限内的线程。模型读取经过过滤的对话内容并输出结构化记忆；无长期价值时允许空结果，生成字段会进行 Secret Redaction。",
+                points: [
+                  "Phase 1 先从 State DB 领取候选线程，再按并发上限并行提取；领取租约用于避免重复处理，失败任务使用退避重试。",
+                  "v1 输出 raw_memory、rollout_summary 和可选 rollout_slug；v2 改为更重视任务边界、用户原话、操作证据和结果状态的 task-first rollout_summary。",
+                  "跳过活跃或短期线程；空闲阈值、最大历史天数、每次启动处理量和提取模型均可配置。",
+                  "提取结果先写入 State DB，尚不是最终注入上下文的精简记忆。"
+                ],
+                tags: ["Codex", "Phase 1", "Rollout", "Secret Redaction"],
+                resources: [
+                  { label: "Codex Memories 官方文档", url: "https://learn.chatgpt.com/docs/customization/memories" },
+                  { label: "Codex Phase 1 实现", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/phase1.rs" },
+                  { label: "Codex v2 提取 Prompt", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/templates/memories/stage_one_system_v2.md" }
+                ]
+              }
             ],
-            ["Extraction", "NER", "Events"]
+            ["Extraction", "NER", "Events", "Claude Code", "Codex"]
           ),
           capability(
             "memory-storage",
@@ -224,9 +258,43 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "session-store", title: "Session Store · Redis", summary: "保存短期会话状态和高频上下文。", description: "使用 Redis Hash、JSON 或 TTL Key 保存会话状态、临时变量和短期缓存，设置过期策略并避免把唯一长期副本放在缓存中。", tags: ["Redis", "TTL", "Short-term"] },
               { id: "relational-memory-store", title: "Relational Store · PostgreSQL", summary: "保存结构化事实、偏好和任务记录。", description: "使用 PostgreSQL 表、JSONB、索引和事务保存有明确字段与一致性要求的记忆，适合按用户、时间和类型过滤。", tags: ["PostgreSQL", "SQL", "JSONB"] },
               { id: "vector-memory-store", title: "Vector Store · pgvector / Qdrant", summary: "保存语义片段和 Embedding 向量。", description: "为记忆内容生成 Embedding，存储向量与 metadata，支持相似度检索、用户隔离、过滤和索引更新。", tags: ["pgvector", "Qdrant", "Embedding"] },
-              { id: "graph-memory-store", title: "Graph Store · Neo4j", summary: "保存实体及其关系和多跳连接。", description: "将人物、项目、事件建模为节点，将参与、拥有、依赖等关系建模为边，适合关系查询、实体消歧和关联推理。", tags: ["Neo4j", "Knowledge Graph"] }
+              { id: "graph-memory-store", title: "Graph Store · Neo4j", summary: "保存实体及其关系和多跳连接。", description: "将人物、项目、事件建模为节点，将参与、拥有、依赖等关系建模为边，适合关系查询、实体消歧和关联推理。", tags: ["Neo4j", "Knowledge Graph"] },
+              {
+                id: "claude-memory-storage",
+                title: "Claude Code · Markdown Store",
+                summary: "每个 Git 仓库使用本机独立的 Markdown 记忆目录。",
+                description: "Claude Code 将 Auto Memory 写入 ~/.claude/projects/<project>/memory/。目录以 MEMORY.md 作为索引，并用独立 Markdown 主题文件保存具体记忆。项目标识来自 Git 仓库，因此同一仓库的 worktree 和子目录共享记忆目录；文件保存在本机，不会自动同步到其他机器或云环境。",
+                points: [
+                  "MEMORY.md 是索引文件；user_role.md、feedback_testing.md 等主题文件分别保存详细内容。",
+                  "记忆文件与会话 Transcript 分离，Transcript 清理策略不会清理该记忆目录。",
+                  "可以通过 /memory 浏览、编辑或打开记忆目录；Auto Memory 路径可通过 settings.json 配置。",
+                  "CLAUDE.md 是人工维护的持久指令，不属于 Auto Memory 存储本身。"
+                ],
+                tags: ["Claude Code", "Markdown", "Repository Scope"],
+                resources: [
+                  { label: "Claude Code Memory 官方文档", url: "https://code.claude.com/docs/en/memory" }
+                ]
+              },
+              {
+                id: "codex-memory-storage",
+                title: "Codex · Local Memory Store",
+                summary: "使用本地 State DB 和版本化文件工作区保存记忆。",
+                description: "Codex 将记忆保存在 CODEX_HOME 下。State DB 暂存逐线程提取结果和使用统计；Phase 2 将选中的 rollout 摘要同步到文件系统。v1 与 v2 的目录和产物不同：常见路径为 ~/.codex/memories/ 或 ~/.codex/memories_v2/，新建 CLI home 默认倾向 v2，已有旧目录时可能继续使用 v1。",
+                points: [
+                  "v1 工作区包含 raw_memories.md、rollout_summaries/ 以及由整合 Agent 维护的 MEMORY.md、memory_summary.md 和可选 skills/。",
+                  "v2 更强调 memory_summary.md 作为启动摘要、rollout_summaries/ 作为证据和任务细节，以及 extensions/ad_hoc/notes/ 作为用户明确提出的记忆修改入口。",
+                  "配置项 memories.version 和 memories.dual_write 控制版本选择与双写迁移；桌面端迁移期间可能同时读取旧目录并写入两个目录。",
+                  "这些文件是生成状态，适合检查和排障，不建议把手工编辑生成文件作为主要记忆控制方式。"
+                ],
+                tags: ["Codex", "State DB", "Filesystem", "v1 / v2"],
+                resources: [
+                  { label: "Codex Memories 官方文档", url: "https://learn.chatgpt.com/docs/customization/memories" },
+                  { label: "Codex Memory Pipeline", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/README.md" },
+                  { label: "Codex Storage 实现", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/storage.rs" }
+                ]
+              }
             ],
-            ["Redis", "PostgreSQL", "Vector DB", "Graph DB"]
+            ["Redis", "PostgreSQL", "Vector DB", "Graph DB", "Claude Code", "Codex"]
           ),
           capability(
             "memory-retrieval",
@@ -237,9 +305,43 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "semantic-memory-search", title: "Semantic Vector Search", summary: "通过向量相似度召回语义相关记忆。", description: "使用 Embedding 将查询与记忆映射到向量空间，采用 cosine、dot product 或 ANN 索引召回候选。", tags: ["Embedding", "ANN", "Vector Search"] },
               { id: "keyword-memory-search", title: "Keyword Search · BM25", summary: "按关键词和词项相关性检索记忆。", description: "使用 BM25、倒排索引或全文搜索召回专有名词、编号和精确术语，弥补向量检索对精确词项不敏感的问题。", tags: ["BM25", "Full-text Search"] },
               { id: "hybrid-memory-search", title: "Hybrid Retrieval", summary: "融合关键词召回与向量召回。", description: "结合稀疏检索和稠密检索，通过 RRF 或归一化分数融合候选，再进行权限和时间过滤。", tags: ["Hybrid Search", "RRF"] },
-              { id: "memory-reranker", title: "Memory Reranker", summary: "对候选记忆进行相关性重排。", description: "使用 Cross-Encoder 或 LLM Reranker 对查询与候选记忆进行联合打分，并限制最终注入上下文的数量和 Token 预算。", tags: ["Reranker", "Cross-Encoder"] }
+              { id: "memory-reranker", title: "Memory Reranker", summary: "对候选记忆进行相关性重排。", description: "使用 Cross-Encoder 或 LLM Reranker 对查询与候选记忆进行联合打分，并限制最终注入上下文的数量和 Token 预算。", tags: ["Reranker", "Cross-Encoder"] },
+              {
+                id: "claude-memory-retrieval",
+                title: "Claude Code · Index + On-demand Read",
+                summary: "启动时加载精简索引，任务需要时再读取主题记忆。",
+                description: "每次会话启动时，Claude Code 只加载 MEMORY.md 的前 200 行或 25KB（先达到哪个限制就按哪个限制）。主题文件不会全部注入上下文；Claude 根据索引定位相关主题，再使用标准文件工具按需读取。公开文档描述的是文件索引和 JIT 读取机制，没有声明使用向量数据库或 Embedding 检索。",
+                points: [
+                  "MEMORY.md 负责启动时的低成本路由；详细事实放在 topic files，避免每轮占用大量上下文。",
+                  "当索引接近容量限制时，Claude 会被提醒缩短索引、移动细节、合并或删除过时条目。",
+                  "主会话 Auto Memory 默认不注入普通 subagent；fork 会继承父会话上下文，配置了独立 memory 的 subagent 可维护自己的记忆。",
+                  "通过 /memory 可以检查实际加载的指令和记忆文件。"
+                ],
+                tags: ["Claude Code", "Progressive Disclosure", "JIT Retrieval"],
+                resources: [
+                  { label: "Claude Code Memory 官方文档", url: "https://code.claude.com/docs/en/memory" }
+                ]
+              },
+              {
+                id: "codex-memory-retrieval",
+                title: "Codex · Summary + Memory Tools",
+                summary: "先注入记忆摘要，再按需搜索、列出和读取具体记忆。",
+                description: "Codex v2 将 memory_summary.md 作为历史上下文注入新会话，摘要提供项目范围和 rollout 文件的定位线索。需要更具体证据时，再使用 Memory Search、List、Read 工具读取本地记忆或 rollout summary。当前公开的本地 search 实现是对文件内容进行文本匹配，不应把它描述成向量语义检索。",
+                points: [
+                  "read_path_v2 指引 Agent 先使用注入的 MEMORY_SUMMARY；只有当历史证据、措辞、时间线或不确定性会影响当前回答时，才打开对应 rollout summary。",
+                  "Memory Search 支持查询词、匹配模式、大小写和上下文行；List / Read 用于定位目录和读取文件片段。",
+                  "检索范围被限制在 memories root 内，并拒绝路径穿越和符号链接，避免越权读取本地文件。",
+                  "通过 /memories 可以按线程控制是否读取现有记忆，以及当前线程是否可作为未来记忆生成的输入。"
+                ],
+                tags: ["Codex", "Memory Search", "List / Read", "Progressive Disclosure"],
+                resources: [
+                  { label: "Codex Memories 官方文档", url: "https://learn.chatgpt.com/docs/customization/memories" },
+                  { label: "Codex v2 Read Path", url: "https://github.com/openai/codex/blob/main/codex-rs/ext/memories/templates/memories/read_path_v2.md" },
+                  { label: "Codex Local Search 实现", url: "https://github.com/openai/codex/blob/main/codex-rs/ext/memories/src/local/search.rs" }
+                ]
+              }
             ],
-            ["Vector Search", "BM25", "Hybrid", "Reranking"]
+            ["Vector Search", "BM25", "Hybrid", "Reranking", "Claude Code", "Codex"]
           ),
           capability(
             "memory-consolidation",
@@ -250,9 +352,43 @@ export const knowledgeTree: KnowledgeItem = node(
               { id: "memory-summarization", title: "Memory Summarization", summary: "将长对话和任务轨迹压缩为摘要。", description: "按会话或主题生成滚动摘要，保留目标、决策、关键事实、未完成事项和引用来源。", tags: ["Summarization", "Compression"] },
               { id: "memory-deduplication", title: "Deduplication", summary: "识别并合并重复记忆。", description: "使用规范化键、实体 ID、文本相似度和时间窗口识别重复记录，合并时保留原始来源和更新时间。", tags: ["Deduplication", "Canonicalization"] },
               { id: "memory-conflict-resolution", title: "Conflict Resolution", summary: "处理新旧记忆之间的矛盾。", description: "按来源可信度、时间、用户确认和适用范围解决冲突；无法判定时保留多版本或请求用户确认。", tags: ["Conflict Resolution", "Provenance"] },
-              { id: "entity-resolution", title: "Entity Resolution", summary: "把不同名称映射到同一实体。", description: "结合别名表、规则、Embedding 和上下文判断实体是否相同，维护稳定 ID 与关系更新。", tags: ["Entity Linking", "Knowledge Graph"] }
+              { id: "entity-resolution", title: "Entity Resolution", summary: "把不同名称映射到同一实体。", description: "结合别名表、规则、Embedding 和上下文判断实体是否相同，维护稳定 ID 与关系更新。", tags: ["Entity Linking", "Knowledge Graph"] },
+              {
+                id: "claude-memory-consolidation",
+                title: "Claude Code · Index Curation",
+                summary: "在会话中维护索引和主题文件，没有公开独立的全局整合阶段。",
+                description: "Claude Code 的 Auto Memory 由 Claude 在工作过程中读写。它通过 MEMORY.md 维护主题索引，将详细内容移到独立文件，并在索引接近 200 行或 25KB 限制时收到整理提醒。官方文档没有描述一个独立的后台全局 Consolidation Agent 或定时全库合并任务。",
+                points: [
+                  "把 MEMORY.md 保持为简短导航索引，主题文件承载详细记忆。",
+                  "索引接近上限时，优先移动细节、合并重复条目、删除过期信息。",
+                  "用户可以通过 /memory 直接查看、编辑或删除 Markdown 记忆。",
+                  "这是一种轻量、文件级、会话内维护模式，与 Codex 的双阶段后台整合不同。"
+                ],
+                tags: ["Claude Code", "Index Curation", "Topic Files"],
+                resources: [
+                  { label: "Claude Code Memory 官方文档", url: "https://code.claude.com/docs/en/memory" }
+                ]
+              },
+              {
+                id: "codex-memory-consolidation",
+                title: "Codex · Global Consolidation",
+                summary: "Phase 2 使用全局锁和独立 Agent 整理跨线程记忆。",
+                description: "Codex 在逐线程 Phase 1 之后运行 Phase 2。它先获取全局工作区锁，再按使用次数、最近使用时间和保留窗口选择 Stage 1 记录，同步文件并计算 Git Workspace Diff；只有发生变化时才启动受限的 Consolidation Agent。v1 与 v2 的最终摘要格式不同。",
+                points: [
+                  "全局锁保证同一份 memory workspace 不会被多个整合任务同时修改；State DB watermark 记录已处理输入。",
+                  "v1 将 raw_memories.md 和 rollout_summaries/ 同步到工作区，再由 Agent 更新 MEMORY.md、memory_summary.md 和可选 skills。",
+                  "v2 更强调生成紧凑的 memory_summary.md：区分用户明确偏好与单次任务决策，按项目和日期组织历史指针，并限制摘要体积。",
+                  "整合 Agent 在本地受限环境中运行；成功后重置 Git 基线，过期 rollout summaries 和扩展资源会被清理。"
+                ],
+                tags: ["Codex", "Phase 2", "Consolidation Agent", "Git Diff"],
+                resources: [
+                  { label: "Codex Memory Pipeline", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/README.md" },
+                  { label: "Codex Phase 2 实现", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/src/phase2.rs" },
+                  { label: "Codex v2 Consolidation Prompt", url: "https://github.com/openai/codex/blob/main/codex-rs/memories/write/templates/memories/consolidation_v2.md" }
+                ]
+              }
             ],
-            ["Summarization", "Deduplication", "Conflict"]
+            ["Summarization", "Deduplication", "Conflict", "Claude Code", "Codex"]
           ),
           capability(
             "memory-lifecycle",
