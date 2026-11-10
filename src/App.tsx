@@ -152,7 +152,7 @@ export default function App() {
     [persistViewState]
   );
 
-  const filteredTree = useMemo<>(
+  const filteredTree = useMemo(
     () => filterKnowledgeTree(knowledgeTree, query),
     [query]
   );
