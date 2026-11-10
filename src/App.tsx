@@ -6,12 +6,13 @@ import {
   Scan,
   Search,
   Shrink,
-  X
+  X,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react";
 import {
   Background,
   BackgroundVariant,
-  Controls,
   ReactFlow,
   useReactFlow
 } from "@xyflow/react";
@@ -106,7 +107,7 @@ function loadPersistedMapState(): PersistedMapState {
 }
 
 export default function App() {
-  const { fitView } = useReactFlow();
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
   const [restoredState] = useState(loadPersistedMapState);
   const [expanded, setExpanded] = useState<Set<string>>(() => restoredState.expanded);
   const [query, setQuery] = useState(restoredState.query);
@@ -286,13 +287,23 @@ export default function App() {
       </div>
 
       <div className="canvas-actions" aria-label="画布操作">
-        <button type="button" title="全部展开" aria-label="全部展开" onClick={expandAll}>
-          <Expand size={16} />
-        </button>
-        <button type="button" title="全部收起" aria-label="全部收起" onClick={collapseAll}>
-          <Shrink size={16} />
-        </button>
+        <div className="canvas-function-area" role="group" aria-label="功能区">
+          <span className="canvas-function-label">功能区</span>
+          <button type="button" title="全部展开" aria-label="全部展开" onClick={expandAll}>
+            <Expand size={16} />
+          </button>
+          <button type="button" title="全部折叠" aria-label="全部折叠" onClick={collapseAll}>
+            <Shrink size={16} />
+          </button>
+          <button type="button" title="放大" aria-label="放大" onClick={() => zoomIn({ duration: 200 })}>
+            <ZoomIn size={16} />
+          </button>
+          <button type="button" title="缩小" aria-label="缩小" onClick={() => zoomOut({ duration: 200 })}>
+            <ZoomOut size={16} />
+          </button>
+        </div>
         <button
+          className="canvas-utility-button"
           type="button"
           title="适配画布"
           aria-label="适配画布"
@@ -301,6 +312,7 @@ export default function App() {
           <Scan size={16} />
         </button>
         <a
+          className="canvas-utility-button"
           href="https://github.com/RIVERS0FT/Agent"
           target="_blank"
           rel="noreferrer"
@@ -333,7 +345,6 @@ export default function App() {
           size={1}
           color="#dce4ef"
         />
-        <Controls position="bottom-left" showInteractive={false} />
       </ReactFlow>
 
       {query && matchCount === 0 && (
