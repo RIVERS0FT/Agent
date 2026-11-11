@@ -94,7 +94,7 @@ export const knowledgeTree: KnowledgeItem = node(
     children: [
       moduleNode(
         "perception",
-        "感知与输入 Perception",
+        "感知与输入",
         "接收用户请求和环境信号，将多模态输入转化为可处理的结构化信息。",
         "感知模块负责把外部世界转换为 Agent 可理解的状态。它覆盖文本、多模态内容、用户意图以及浏览器、业务系统和实时事件等环境观察。",
         "#4E83E6",
@@ -138,7 +138,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "multimodal-perception",
-            "多模态感知 Multimodal Perception",
+            "多模态感知",
             "解析图像、音频、视频、文档和空间数据中的内容与结构。",
             "多模态输入不是简单地把文件附加到 Prompt。系统需要针对不同模态执行解码、分段、特征提取、时间对齐和语义理解，并保留原始媒体与派生文本之间的引用关系。",
             [
@@ -153,7 +153,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "perception-stream-processing",
-            "实时输入与事件流 Stream Processing",
+            "实时输入与事件流",
             "处理持续到达、需要低延迟响应的消息和环境事件。",
             "实时 Agent 需要处理输入流而非单次请求。应设计缓冲、去抖、批处理、顺序保证、背压和断线恢复，避免事件风暴或乱序消息污染当前任务状态。",
             [
@@ -166,7 +166,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "perception-quality",
-            "感知质量与不确定性 Perception Quality",
+            "感知质量与不确定性",
             "评估输入识别结果的置信度、歧义和可用性。",
             "感知输出应携带置信度、时间、来源和不确定性。对低质量音频、模糊图像或冲突传感器读数，应触发补充观察或向用户澄清，而不是把猜测当作事实。",
             [
@@ -181,7 +181,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "reasoning-planning",
-        "推理与规划 Reasoning",
+        "推理与规划",
         "理解目标、拆解任务、选择行动，并根据结果修订计划。",
         "推理与规划模块负责决定 Agent 下一步应该做什么。它将复杂目标拆成可验证的子任务，选择推理模式，并在环境变化或执行失败时重新规划。",
         "#8A6BD8",
@@ -189,7 +189,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "task-decomposition",
-            "任务拆解 Task Decomposition",
+            "任务拆解",
             "将复杂目标拆分为有依赖关系的子任务。",
             "拆解结果应具备明确的完成条件、依赖和执行顺序，避免只生成无法验证的自然语言计划。",
             [
@@ -275,7 +275,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "self-improvement",
-            "自我改进 Self-improvement",
+            "自我改进",
             "利用评估和历史反馈持续优化提示词、策略与工作流。",
             "自我改进需要明确目标函数、可复现的数据集和安全边界。优化对象可以是 Prompt、工具选择策略或工作流配置，不应允许 Agent 未经验证地修改生产权限和核心代码。",
             [
@@ -287,7 +287,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "reasoning-search",
-            "搜索式推理 Search-based Reasoning",
+            "搜索式推理",
             "通过生成、扩展和评估多个候选思路寻找高质量解。",
             "当单次线性推理不可靠时，可以把推理过程表示为候选状态或思路空间，执行分支扩展、评分、剪枝和回溯。搜索策略需要设置深度、宽度、成本和终止条件。",
             [
@@ -302,7 +302,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "symbolic-constraint-planning",
-            "符号推理与约束规划 Symbolic & Constraint Planning",
+            "符号推理与约束规划",
             "把目标、前置条件和资源约束转化为可计算的规划问题。",
             "对于规则明确、约束严格或高风险的任务，纯自然语言规划可能不够可靠。可以结合符号状态、逻辑规则、约束求解器和模型生成计划，再用确定性求解器检查可行性。",
             [
@@ -315,7 +315,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "decision-under-uncertainty",
-            "不确定性决策 Decision under Uncertainty",
+            "不确定性决策",
             "在信息不完整、行动有风险时选择期望收益更高的下一步。",
             "Agent 经常无法确定环境状态、工具成功概率或行动后果。决策层应显式表达信念、效用、风险和信息价值，并在必要时选择先观察、先验证或向用户询问。",
             [
@@ -330,7 +330,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "memory",
-        "记忆 Memory",
+        "记忆",
         "提取、存储、检索、更新和遗忘 Agent 运行过程中有价值的信息。",
         "Memory 是跨轮次状态与经验管理子系统，不限定某种数据库或单一产品实现。通用链路覆盖来源采集、触发调度、提取与表示、存储、检索与上下文注入、整合更新、生命周期、使用反馈和安全治理。不同 Agent 可以选择不同组合；产品案例应映射到这些通用能力，而不是替代通用技术分类。它与 RAG 知识库不同：Memory 更关注用户、会话、任务经历和动态状态。",
         "#D66E91",
@@ -338,7 +338,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "memory-capture",
-            "记忆来源与采集 Memory Capture & Ingestion",
+            "记忆来源与采集",
             "从会话、任务轨迹、工具结果和外部事件中收集可形成记忆的原始证据。",
             "记忆系统首先要定义可采集的数据源和采集边界。不同 Agent 可能读取完整对话、压缩后的任务轨迹、工具调用事件、用户明确反馈或外部系统状态；采集时应保留时间、来源、会话、项目和权限元数据，并过滤无关或不可信内容。",
             [
@@ -367,7 +367,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-trigger-scheduling",
-            "写入触发与调度 Memory Trigger & Scheduling",
+            "写入触发与调度",
             "决定何时启动记忆提取，以及如何安全地调度后台记忆任务。",
             "记忆写入可以发生在每轮结束、会话结束、用户显式请求、空闲窗口或定时后台任务。触发策略会影响延迟、成本和记忆完整性；后台执行还需要候选筛选、任务领取、租约、并发限制、重试和幂等控制。",
             [
@@ -398,7 +398,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-extraction",
-            "记忆提取 Memory Extraction",
+            "记忆提取",
             "从对话、任务轨迹和环境反馈中识别值得长期保留的信息。",
             "提取阶段要区分事实、偏好、事件、任务状态和推测，保留来源与置信度，并避免把临时内容或敏感信息无条件写入长期记忆。",
             [
@@ -449,7 +449,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-representation",
-            "记忆表示与数据模型 Memory Representation",
+            "记忆表示与数据模型",
             "定义记忆的类型、字段、层级和证据关系，使不同 Agent 的记忆可以被理解与转换。",
             "记忆提取结果不能只有一段无结构文本。通用记忆记录应描述内容、类型、主体、作用范围、来源、时间、置信度和状态；可按用户、项目、任务和事件组织，并同时保留精简摘要与可追溯证据。不同产品可以采用 JSON、Markdown、关系表或图结构表达同一语义。",
             [
@@ -479,7 +479,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-storage",
-            "记忆存储 Memory Storage",
+            "记忆存储",
             "根据记忆类型选择合适的数据结构和持久化介质。",
             "不要把所有记忆都塞进向量数据库。会话状态、结构化事实、语义片段和实体关系具有不同查询模式，应采用适合的数据模型并保留用户、租户和来源元数据。",
             [
@@ -531,7 +531,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-retrieval",
-            "记忆检索 Memory Retrieval",
+            "记忆检索",
             "根据当前任务召回最相关、可信且仍然有效的记忆。",
             "记忆召回应结合语义相关性、时间、重要性、用户权限和记忆类型。检索结果应返回来源与更新时间，避免过期记忆被当作当前事实。",
             [
@@ -581,7 +581,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-consolidation",
-            "记忆更新与整合 Memory Consolidation",
+            "记忆更新与整合",
             "合并重复信息，解决冲突，并将零散经历整理成稳定知识。",
             "记忆不是只增不减的日志。系统应周期性整理候选记忆，识别重复和矛盾，保留时间变化与来源证据，并避免将一次性事件错误固化为长期事实。",
             [
@@ -632,7 +632,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-lifecycle",
-            "记忆生命周期 Memory Lifecycle",
+            "记忆生命周期",
             "控制记忆何时保留、衰减、过期和删除。",
             "记忆生命周期策略决定哪些信息值得长期保留。需要同时支持自动过期、重要性衰减、用户查看和删除，以及隐私和租户隔离要求。",
             [
@@ -682,7 +682,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-usage-feedback",
-            "记忆使用反馈 Memory Usage & Feedback",
+            "记忆使用反馈",
             "利用记忆的实际召回和使用结果，调整后续记忆的优先级与质量。",
             "记忆系统不能只记录写入次数，还应观察记忆是否被检索、是否被模型引用、是否帮助任务完成，以及用户是否纠正或否定了它。反馈数据可用于排序、整合、淘汰和质量评估，但不能仅凭访问次数推断事实正确。",
             [
@@ -712,7 +712,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-security-trust",
-            "记忆安全与信任 Memory Security & Trust",
+            "记忆安全与信任",
             "保护记忆数据的来源可信度、访问范围、敏感内容和执行边界。",
             "记忆会跨会话影响后续 Agent 行为，因此既是数据存储问题，也是信任边界问题。需要防止秘密泄露、跨项目或跨用户召回、路径越权、历史提示注入和后台整合任务越权；模型生成的记忆应被视为带来源的证据，而不是高于当前指令的权威规则。",
             [
@@ -744,7 +744,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-instruction-boundary",
-            "指令与记忆边界 Instructions vs Memory",
+            "指令与记忆边界",
             "区分需要稳定遵循的人工指令，与从历史工作中提取的辅助记忆。",
             "指令文件承载明确、可审查、可随仓库共享的规则；自动记忆承载偏好、纠正和历史经验。两者都可能进入模型上下文，但不等于权限系统或硬性执行约束。必须始终遵循的团队规则应写入指令文件；安全边界应由权限、Hook 或沙箱执行。",
             [
@@ -788,7 +788,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "memory-architecture-comparison",
-            "产品架构对比 Architecture Comparison",
+            "产品架构对比",
             "从触发、写入、存储、读取和治理五个维度比较真实产品的记忆架构。",
             "Claude Code 与 Codex 都采用本地文件和渐进式上下文加载，但记忆写入路径不同。Claude 偏向会话内持续维护仓库级 Markdown 记忆；Codex 偏向后台逐线程提取，再通过全局整合 Agent 形成摘要和证据库。该对比以公开文档与当前开源实现为依据。",
             [
@@ -820,7 +820,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "knowledge-rag",
-        "知识检索 Knowledge / RAG",
+        "知识检索（RAG）",
         "将外部文档和领域知识转化为可检索、可引用的证据。",
         "知识模块主要处理外部、相对稳定或规模较大的资料库；与 Memory 的个人经历和会话状态区分。核心链路是数据接入、解析切分、索引、召回、重排和基于证据生成。",
         "#D99445",
@@ -828,7 +828,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "document-ingestion",
-            "文档接入与解析 Ingestion",
+            "文档接入与解析",
             "接入多种来源的知识内容，并提取正文与元数据。",
             "文档解析质量决定后续检索上限。接入流程需要保留文件来源、权限、版本和更新时间，并处理扫描件、表格和复杂布局。",
             [
@@ -840,7 +840,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "chunking-indexing",
-            "切分与索引 Chunking & Indexing",
+            "切分与索引",
             "将文档转换为适合召回的片段和索引结构。",
             "Chunk 策略需要在语义完整性、召回粒度和上下文成本之间平衡。索引构建还要考虑增量更新、版本替换和删除传播。",
             [
@@ -853,7 +853,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "knowledge-retrieval",
-            "知识召回与重排 Retrieval",
+            "知识召回与重排",
             "从知识库中找出与当前问题最相关的证据片段。",
             "召回层应结合问题类型选择检索方式，并在候选集合上执行过滤和重排。检索效果要通过独立数据集评估，而不是只看生成答案是否流畅。",
             [
@@ -867,7 +867,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "grounded-generation",
-            "证据组织与生成 Grounding",
+            "证据组织与生成",
             "将检索证据组织为上下文，并生成可追溯的答案。",
             "生成阶段应区分证据与模型推断，对关键结论保留引用，并在证据不足时明确说明不确定性。",
             [
@@ -879,7 +879,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "query-transformation",
-            "查询理解与改写 Query Understanding",
+            "查询理解与改写",
             "把用户问题转换成更适合知识检索的查询表达。",
             "用户问题可能含有指代、省略、多个子问题或与知识库术语不一致。查询处理应在保留原意的前提下生成检索查询，并避免把改写过程引入的新事实当成用户输入。",
             [
@@ -893,7 +893,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "advanced-indexing",
-            "高级索引与检索结构 Advanced Indexing",
+            "高级索引与检索结构",
             "根据语料规模、查询类型和延迟目标选择索引结构。",
             "Embedding 只是检索管线的一部分。实际系统还需要选择向量索引、稀疏倒排索引、多向量表示、父子片段和字段索引，并权衡召回率、内存、更新成本和查询延迟。",
             [
@@ -907,7 +907,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "knowledge-freshness-governance",
-            "知识更新与权限治理 Freshness & Governance",
+            "知识更新与权限治理",
             "让索引与原始知识源保持同步，并遵守来源权限。",
             "知识库会持续变化。生产系统需要处理新增、修改、删除、版本、权限变更和重建任务；如果只做一次性导入，召回结果可能过期或泄露已撤销访问的数据。",
             [
@@ -923,7 +923,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "tools-actions",
-        "工具与行动 Tools",
+        "工具与行动",
         "发现、选择和执行工具，让 Agent 能够安全地影响外部系统。",
         "工具模块是 Agent 与外部世界交互的执行层。模型可以提出工具调用意图，但参数校验、身份授权、实际执行、副作用控制和结果确认必须由运行时负责。",
         "#2DA58B",
@@ -931,7 +931,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "tool-definition",
-            "工具定义与契约 Tool Definition",
+            "工具定义与契约",
             "把外部能力封装为模型可理解、程序可校验的工具接口。",
             "工具描述应明确用途、参数、返回值、副作用和失败语义。工具越清晰，模型越容易正确选择和组合。",
             [
@@ -944,7 +944,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-discovery-routing",
-            "工具发现与选择 Tool Routing",
+            "工具发现与选择",
             "根据任务目标选择合适工具，并管理可用工具集合。",
             "工具选择需要结合模型判断、规则约束和当前身份权限。大量工具场景应采用分组、搜索或分层路由，避免一次性暴露全部工具。",
             [
@@ -956,7 +956,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-execution",
-            "工具执行与可靠性 Execution",
+            "工具执行与可靠性",
             "可靠执行工具调用，并处理超时、失败、重试和副作用。",
             "工具执行不能假设网络和外部系统始终可用。执行层应提供统一错误模型、有限重试、幂等控制和后置验证。",
             [
@@ -970,7 +970,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-integrations",
-            "外部系统集成 Integrations",
+            "外部系统集成",
             "连接 API、MCP 服务、浏览器和计算机使用环境。",
             "集成层负责协议适配和凭证管理，不应将第三方协议细节散落在 Agent 推理逻辑中。",
             [
@@ -984,7 +984,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-permissions-sandbox",
-            "权限与执行隔离 Permissions & Sandbox",
+            "权限与执行隔离",
             "限制工具可以访问的资源、数据和执行能力。",
             "工具权限必须由可信运行时强制执行。模型输出、网页内容和 MCP 返回都不能直接扩大权限范围。",
             [
@@ -997,7 +997,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-runtime-adapters",
-            "工具运行时与执行适配 Tool Runtime Adapters",
+            "工具运行时与执行适配",
             "把模型提出的工具调用安全地转换成真实执行，并统一处理不同执行环境。",
             "工具定义不等于工具执行。运行时需要完成参数校验、身份与权限检查、执行环境选择、输出捕获和副作用验证；同一个 Agent 可能同时调用 API、Shell、文件系统、数据库和远程工具。",
             [
@@ -1025,7 +1025,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-result-streaming",
-            "工具结果与长任务管理 Tool Results & Long-running Jobs",
+            "工具结果与长任务管理",
             "处理大结果、分页结果、流式输出和需要等待的外部任务。",
             "工具返回值可能超出上下文窗口，或需要数分钟到数小时才能完成。工具层应提供分页、截断、文件引用、异步任务 ID、进度事件和取消机制，而不是把所有输出直接塞回模型。",
             [
@@ -1038,7 +1038,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-extension-governance",
-            "工具扩展与供应治理 Tool Extensions & Governance",
+            "工具扩展与供应治理",
             "管理插件、工具包和外部服务器的发现、加载、升级与信任。",
             "工具生态不仅是接口集合，还包含第三方代码、权限声明和版本依赖。扩展加载应有清晰来源、能力清单、签名或校验、版本约束和隔离边界。",
             [
@@ -1068,7 +1068,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "orchestration",
-        "流程编排 Orchestration",
+        "流程编排",
         "管理 Agent 的状态、步骤流转、任务交接和人机协作。",
         "编排模块负责将多个能力组织成可靠的运行流程。它维护状态、检查点和转移条件，并处理并行任务、Agent 委派、人工审批和异常恢复。",
         "#4F9CA8",
@@ -1076,7 +1076,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "workflow-state",
-            "工作流与状态管理 Workflow State",
+            "工作流与状态管理",
             "使用明确的状态和转移条件控制任务生命周期。",
             "长任务需要可暂停、可恢复和可审计的状态模型。状态转移应由确定性代码验证，避免关键业务流程只存在于 Prompt 中。",
             [
@@ -1089,7 +1089,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "multi-agent-collaboration",
-            "多 Agent 协作 Multi-Agent",
+            "多 Agent 协作",
             "通过分工、委派和并行执行完成复杂任务。",
             "多 Agent 应建立在清晰的职责边界和可测收益上。需要定义通信协议、上下文传递、结果合并和责任归属。",
             [
@@ -1102,7 +1102,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "human-in-loop",
-            "人机协同 Human-in-the-loop",
+            "人在回路（HITL）",
             "在关键节点暂停流程并等待人工决策或补充信息。",
             "人工协同是 Agent 工作流中的正式控制节点。审批应绑定具体动作和参数，支持修改、拒绝、超时与恢复。",
             [
@@ -1114,7 +1114,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "durable-execution",
-            "异步任务与持久执行 Durable Execution",
+            "异步任务与持久执行",
             "支持长时间运行、调度、重试和故障恢复。",
             "长流程不应依赖单个 HTTP 请求保持存活。持久执行需要可靠队列、任务状态存储和可恢复的活动步骤。",
             [
@@ -1127,7 +1127,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "workflow-patterns",
-            "工作流编排模式 Workflow Patterns",
+            "工作流编排模式",
             "选择适合任务结构的串行、并行、路由、循环和评估优化模式。",
             "Agent 工作流不只有单一的 Planner-Executor。应根据任务依赖、可并行性和错误恢复需求选择模式；复杂系统可以组合多种模式，但需要明确停止条件和结果汇总责任。",
             [
@@ -1141,7 +1141,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "distributed-state-reliability",
-            "分布式状态与恢复 Distributed State & Recovery",
+            "分布式状态与恢复",
             "保证跨进程、跨服务和长时间运行的 Agent 工作流可恢复。",
             "工作流可能在模型调用、工具执行或等待人工审批时中断。可靠编排需要持久化事件和检查点，处理重复投递、部分完成、补偿和状态版本迁移。",
             [
@@ -1155,7 +1155,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "agent-communication-coordination",
-            "Agent 通信与协同 Agent Communication",
+            "Agent 通信与协同",
             "管理 Agent 之间的消息、共享状态、任务交接和协作协议。",
             "多 Agent 协作不仅是启动多个模型实例，还需要定义消息语义、收件箱、状态可见性、交接责任和冲突处理。通信协议应区分消息已发送、已接收、已处理和任务已完成。",
             [
@@ -1188,7 +1188,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "context-prompt",
-        "上下文与提示 Context",
+        "上下文与提示",
         "为每次模型调用组装正确、精简且符合约束的信息。",
         "上下文模块决定模型每一轮能看到什么。它将系统规则、当前任务、历史状态、检索证据和工具结果按优先级组织，并在 Token 预算内压缩和注入。",
         "#6C8DBB",
@@ -1196,7 +1196,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "prompt-management",
-            "提示词管理 Prompt Management",
+            "提示词管理",
             "组织稳定规则、任务指令和可复用提示模板。",
             "Prompt 应作为可测试、可版本化的工程资产管理，避免将业务逻辑散落在多个字符串中。",
             [
@@ -1210,7 +1210,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "context-assembly",
-            "上下文组装 Context Assembly",
+            "上下文组装",
             "从多个数据源选择当前任务真正需要的信息。",
             "上下文组装要处理优先级、时效性、相关性和信任等级，避免将全部历史记录和检索结果无差别塞入模型。",
             [
@@ -1223,7 +1223,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "context-compression",
-            "上下文压缩 Context Compression",
+            "上下文压缩",
             "在有限 Token 预算下保留最有价值的信息。",
             "上下文压缩应优先保留目标、约束、关键决策和未完成事项。压缩结果需要能够追溯原始来源，并避免摘要引入新事实。",
             [
@@ -1235,7 +1235,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "output-contract",
-            "输出约束 Output Contract",
+            "输出约束",
             "让模型响应符合下游程序可消费的格式和业务契约。",
             "模型输出必须经过解析和业务验证。格式正确并不代表语义正确，敏感操作还需要独立授权。",
             [
@@ -1247,7 +1247,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "instruction-hierarchy",
-            "指令层级与动态加载 Instruction Hierarchy",
+            "指令层级与动态加载",
             "管理系统、开发者、用户、项目和任务级指令的优先级与作用范围。",
             "Agent 指令来源可能包括系统规则、开发者策略、用户要求、仓库说明、Skill 和动态工具描述。需要定义优先级、作用域、合并方式、预算和冲突处理，避免把所有文本无差别拼接。",
             [
@@ -1274,7 +1274,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "context-selection-ranking",
-            "上下文选择与排序 Context Selection",
+            "上下文选择与排序",
             "从多种候选来源中挑选当前任务真正需要的上下文。",
             "上下文来源包括当前对话、长期记忆、RAG 证据、项目指令、工具输出和执行状态。选择时应结合相关性、时效性、来源可信度、权限和 Token 成本，而不是简单按时间追加。",
             [
@@ -1287,7 +1287,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "context-window-lifecycle",
-            "上下文窗口与生命周期 Context Window Management",
+            "上下文窗口与生命周期",
             "控制上下文长度、压缩时机和历史保留策略。",
             "长会话会持续消耗上下文窗口。系统需要估算 Token、识别压缩触发点、保留重要状态和未完成事项，并避免压缩后破坏工具调用、引用或多 Agent 通信的完整性。",
             [
@@ -1315,7 +1315,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "context-provenance-trust",
-            "上下文来源与信任 Context Provenance & Trust",
+            "上下文来源与信任",
             "标注上下文来源、信任等级和可引用证据边界。",
             "模型看到的文本不都具有相同权威性。系统需要区分可信指令、用户内容、外部文档、网页、工具输出和历史记忆；将不可信内容作为数据传递，并保留可追溯来源。",
             [
@@ -1329,7 +1329,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "model-runtime",
-        "模型运行时 Model Runtime",
+        "模型运行时",
         "统一接入模型供应商，管理模型路由、调用策略和多模态能力。",
         "模型运行时将上层 Agent 逻辑与模型供应商 API 解耦，负责模型选择、参数管理、流式响应、降级和调用成本治理。",
         "#7384A5",
@@ -1337,7 +1337,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "model-routing",
-            "模型路由 Model Routing",
+            "模型路由",
             "根据任务能力、成本、延迟和可用性选择模型。",
             "路由策略应可解释、可观测，并保留故障回退。不要只按模型名称硬编码业务逻辑。",
             [
@@ -1350,7 +1350,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "provider-adapters",
-            "供应商适配 Provider Adapters",
+            "供应商适配",
             "将不同模型 API 统一为内部调用接口。",
             "适配层统一消息结构、工具调用、错误码和 Token 统计，减少上层代码对特定供应商协议的耦合。",
             [
@@ -1362,7 +1362,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "streaming-multimodal",
-            "流式与多模态生成 Streaming & Multimodal",
+            "流式与多模态生成",
             "处理流式文本、音频和其他多模态模型输出。",
             "模型输出可能是文本片段、工具调用增量或音频数据。调用层应统一事件协议，并正确处理取消、断连和最终 usage。",
             [
@@ -1374,7 +1374,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "inference-serving",
-            "模型推理服务 Inference Serving",
+            "模型推理服务",
             "将模型权重部署为可被 Agent 调用的在线或本地推理服务。",
             "模型运行时不仅是 API Adapter，还包括模型加载、GPU/CPU 调度、批处理、并发、显存管理、流式生成和服务健康。部署形态可为托管 API、本地进程或集群推理服务。",
             [
@@ -1388,7 +1388,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "inference-optimization",
-            "推理性能优化 Inference Optimization",
+            "推理性能优化",
             "降低 Token 延迟、显存占用和单位请求成本。",
             "推理性能由模型大小、KV Cache、批处理、解码策略、量化和硬件共同决定。优化时应同时衡量首 Token 延迟、每 Token 延迟、吞吐、质量和显存。",
             [
@@ -1402,7 +1402,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "model-adaptation-decoding",
-            "模型适配与生成控制 Model Adaptation & Decoding",
+            "模型适配与生成控制",
             "通过模型适配、解码参数和受约束生成满足不同 Agent 任务。",
             "模型选择之外，还可以调整模型行为和输出空间。应区分改变模型权重的适配技术、改变采样过程的解码策略，以及约束输出格式的解码机制。",
             [
@@ -1418,7 +1418,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "evaluation-observability",
-        "评估与可观测性 Evaluation",
+        "评估与可观测性",
         "衡量 Agent 的任务效果、执行轨迹、性能成本和版本变化。",
         "评估与可观测性为 Agent 提供反馈闭环。既要判断任务最终是否完成，也要观察每次模型调用、检索和工具执行，定位失败原因并持续回归。",
         "#7D88A7",
@@ -1426,7 +1426,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "evaluation-datasets",
-            "评测数据与任务成功率 Evals",
+            "评测数据与任务成功率",
             "建立可重复的数据集和评分标准，量化 Agent 任务表现。",
             "评测集应覆盖常见路径、边界条件和对抗样本，并将主观质量与可程序化指标分开。",
             [
@@ -1438,7 +1438,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tracing-debugging",
-            "执行追踪与调试 Tracing",
+            "执行追踪与调试",
             "记录模型、工具、检索和状态变更的完整调用链。",
             "一次 Agent 任务可能跨越多个模型和外部系统。Trace 应能串联每个 Span，并在保护隐私的前提下保留足够的调试信息。",
             [
@@ -1450,7 +1450,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "runtime-metrics",
-            "运行指标 Metrics",
+            "运行指标",
             "从效果、性能、成本和安全维度监控 Agent。",
             "指标需要与真实业务目标关联，并按任务类型、模型版本和工具维度切分，避免只观察平均延迟或总 Token 数。",
             [
@@ -1463,7 +1463,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "regression-release",
-            "回归测试与发布 Regression",
+            "回归测试与发布",
             "将模型、Prompt、工具和知识库变化纳入发布质量门禁。",
             "Agent 行为会随模型版本和上下文变化。发布应使用固定基准集、灰度流量和快速回滚机制。",
             [
@@ -1475,7 +1475,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "agent-trajectory-evaluation",
-            "Agent 轨迹与过程评估 Agent Trajectory Evaluation",
+            "Agent 轨迹与过程评估",
             "评估 Agent 每一步决策、工具选择和状态转移是否合理。",
             "只看最终答案无法判断 Agent 是否使用了错误工具、执行了多余步骤或造成不必要副作用。轨迹评估应关联计划、模型响应、工具调用、工具结果和最终环境状态。",
             [
@@ -1488,7 +1488,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "rag-evaluation",
-            "检索与知识质量评估 RAG Evaluation",
+            "RAG 质量评估",
             "分别评估检索召回质量、证据质量和答案忠实度。",
             "RAG 评估需要将检索器和生成器分开测量。检索结果正确不代表答案忠实，答案看似合理也不代表引用证据支持结论。",
             [
@@ -1501,7 +1501,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "safety-redteam-evaluation",
-            "安全评估与红队测试 Safety Evals & Red Teaming",
+            "安全评估与红队测试",
             "系统性测试 Agent 在恶意输入和高风险环境下的行为。",
             "安全评估应覆盖模型、上下文、工具、记忆、插件和外部环境。测试集需要包含攻击成功与失败样本，并检查实际副作用和数据泄露，而不只判断文本是否拒绝。",
             [
@@ -1514,7 +1514,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "online-evaluation-feedback",
-            "在线评估与用户反馈 Online Evaluation",
+            "在线评估与用户反馈",
             "通过真实流量、用户反馈和版本实验持续监控 Agent 质量。",
             "离线基准无法覆盖真实用户分布和外部系统变化。在线评估应采用灰度、对照实验、用户反馈和漂移监测，并在质量或安全指标退化时触发回滚。",
             [
@@ -1529,7 +1529,7 @@ export const knowledgeTree: KnowledgeItem = node(
       ),
       moduleNode(
         "security-governance",
-        "安全与治理 Security",
+        "安全与治理",
         "保护 Agent、用户数据和外部系统，约束高风险行为。",
         "安全治理是横切模块，覆盖感知、记忆、模型、工具和运行时。提示词只能提供引导，真正的安全边界必须由权限系统、隔离执行、数据治理和审计机制保证。",
         "#B97955",
@@ -1537,7 +1537,7 @@ export const knowledgeTree: KnowledgeItem = node(
         [
           capability(
             "prompt-injection-defense",
-            "提示注入防护 Prompt Injection",
+            "提示注入防护",
             "识别并隔离来自用户、网页、文档和工具结果的恶意指令。",
             "所有外部内容都应视为不可信数据。不能让检索文档或网页内容覆盖系统规则，也不能让模型自行决定是否突破工具权限。",
             [
@@ -1550,7 +1550,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "identity-access",
-            "身份与访问控制 IAM",
+            "身份与访问控制（IAM）",
             "确认当前主体身份，并对每次资源访问执行授权。",
             "用户身份、Agent 身份和工具凭证应分离。授权要按资源和动作细粒度执行，默认拒绝未明确授权的操作。",
             [
@@ -1562,7 +1562,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "data-privacy",
-            "数据隐私与治理 Data Privacy",
+            "数据隐私与治理",
             "控制敏感信息的采集、使用、存储、保留和删除。",
             "记忆和日志可能包含个人信息与业务机密。数据治理需要贯穿采集、模型调用、存储、检索和删除全链路。",
             [
@@ -1575,7 +1575,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "runtime-guardrails",
-            "运行时安全与韧性 Runtime Guardrails",
+            "运行时安全与韧性",
             "通过预算、限流、审计和故障保护控制系统风险。",
             "Agent 可能循环调用、过度消耗 Token 或重复执行操作。运行时必须为任务、模型和工具设置明确的资源与安全边界。",
             [
@@ -1588,7 +1588,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "agent-threat-modeling",
-            "Agent 威胁建模 Agent Threat Modeling",
+            "Agent 威胁建模",
             "识别 Agent 在输入、推理、工具、记忆和外部执行中的攻击面。",
             "Agent 的攻击面跨越自然语言、模型上下文、插件、工具和真实环境。威胁建模应覆盖直接与间接提示注入、工具参数操纵、记忆投毒、数据外传、越权执行和资源耗尽。",
             [
@@ -1602,7 +1602,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "tool-supply-chain-security",
-            "工具与插件供应链安全 Tool / Plugin Supply Chain",
+            "工具与插件供应链安全",
             "验证外部工具、MCP Server、Skill 和插件的来源与运行权限。",
             "Agent 扩展可能携带可执行脚本、网络访问和文件权限。安全模型应覆盖发现、安装、升级、运行和卸载全生命周期，并确保能力声明与实际权限一致。",
             [
@@ -1616,7 +1616,7 @@ export const knowledgeTree: KnowledgeItem = node(
           ),
           capability(
             "data-governance-compliance",
-            "数据治理与合规 Data Governance",
+            "数据治理与合规",
             "管理 Agent 数据的分类、访问、地域、保留和删除要求。",
             "Agent 会处理用户内容、企业数据、凭证和模型生成的派生数据。治理策略必须覆盖原始输入、上下文、记忆、索引、日志、缓存和备份，确保数据用途与保留范围可审计。",
             [
