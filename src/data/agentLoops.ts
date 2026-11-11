@@ -20,7 +20,7 @@ const group=(id:string,title:string,summary:string,description:string,children:K
 
 export const agentLoopPatterns: KnowledgeItem = {
   id:"agent-loop-patterns",
-  title:"Agent 循环模式 Agent Loop Patterns",
+  title:"Agent 循环模式",
   summary:"跨越感知、推理、记忆、工具、编排与运行时的循环控制模式索引。",
   description:"Agent 的循环不是单一的 while 循环，而是围绕不同责任建立的状态转换闭环。该模块作为跨模块索引，统一描述循环的触发条件、单轮步骤、状态、反馈、退出与异常恢复，并通过关联知识跳转到原有功能模块中的算法和工程实现。一个 Agent 通常由多个嵌套或并行的 Loop 组成。",
   points:[
