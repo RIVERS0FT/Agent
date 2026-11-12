@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Expand,
-  Github,
   Network,
   Scan,
   Search,
@@ -304,7 +303,6 @@ export default function App() {
       </div>
 
       <div className="canvas-function-area" role="group" aria-label="功能区">
-        <span className="canvas-function-label">功能区</span>
         <button
           type="button"
           title="展开选中节点及其所有子节点"
@@ -338,15 +336,6 @@ export default function App() {
         >
           <Scan size={16} />
         </button>
-        <a
-          href="https://github.com/RIVERS0FT/Agent"
-          target="_blank"
-          rel="noreferrer"
-          title="GitHub 仓库"
-          aria-label="GitHub 仓库"
-        >
-          <Github size={16} />
-        </a>
       </div>
 
       <ReactFlow
